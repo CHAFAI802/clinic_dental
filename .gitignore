@@ -1,0 +1,43 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+pip-wheel-metadata/
+*.manifest
+*.spec
+
+# --- Environnements virtuels ---
+venv/
+env/
+.venv/
+
+# --- Django & bases ---
+*.sqlite3
+db.sqlite3
+/media/
+staticfiles/
+
+# --- Fichiers sensibles ---
+.env
+*.key
+*.pem
+
+# --- IDE & OS ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# --- Tests & logs ---
+.coverage
+.pytest_cache/
+htmlcov/
+*.log
+
+# --- Compilations front (si ajout) ---
+node_modules/

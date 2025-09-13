@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container my-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="mb-0">Détails du rendez-vous</h2>
+    <div>
+      <a class="btn btn-outline-secondary" href="{% url 'prescriptions:create_prescription' appointment.pk%}">📄 Générer ordonnance PDF</a>
+      <a class="btn btn-outline-primary" href="{% url 'appointments:appointment_update' appointment.pk %}">Modifier</a>
+      <a class="btn btn-outline-dark" href="{% url 'appointments:appointment_list' %}">⬅ Retour à la liste</a>
+    </div>
+  </div>
+
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <p><strong>Patient :</strong> {{ appointment.patient }}</p>
+          <p><strong>Date :</strong> {{ appointment.date|date:"d/m/Y" }}</p>
+        </div>
+        <div class="col-md-6">
+          <p><strong>Heure :</strong> {{ appointment.time|time:"H:i" }}</p>
+          <p><strong>Médecin :</strong> {{ appointment.medecin }}</p>
+        </div>
+      </div>
+      <div class="mb-3">
+        <p><strong>Motif :</strong></p>
+        <div class="border rounded p-3 bg-light">{{ appointment.reason|default:"Non spécifié." }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

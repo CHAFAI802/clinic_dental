@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <h2>Tableau de bord - {{ name}}</h2>
+
+    {% if name == "Admin" %}
+        <p>Total Patients : {{ patients_count }}</p>
+        <p>Total Rendez-vous : {{ appointments_count }}</p>
+    {% elif name == "Médecin" %}
+        <h4>Vos rendez-vous</h4>
+        <ul>
+            {% for rdv in appointments %}
+                <li>{{ rdv.date }} - {{ rdv.patient }}</li>
+            {% empty %}
+                <li>Aucun rendez-vous</li>
+            {% endfor %}
+        </ul>
+    {% elif name == "Secrétaire" %}
+        <h4>Patients</h4>
+        <ul>
+            {% for patient in patients %}
+                <li>{{ patient.first_name }} {{ patient.last_name }}</li>
+            {% empty %}
+                <li>Aucun patient</li>
+            {% endfor %}
+        </ul>
+
+        <h4>Rendez-vous</h4>
+        <ul>
+            {% for rdv in appointments %}
+                <li>{{ rdv.date }} - {{ rdv.patient }}</li>
+            {% empty %}
+                <li>Aucun rendez-vous</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>Bienvenue sur le tableau de bord.</p>
+    {% endif %}
+</div>
+{% endblock %}

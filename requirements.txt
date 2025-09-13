@@ -1,0 +1,27 @@
+# Framework principal
+Django==5.0.6
+
+# Base de données MySQL
+mysqlclient==2.2.4
+
+# Génération de PDF
+WeasyPrint==62.3
+
+# Gestion des variables d’environnement
+python-decouple==3.8
+
+# Sécurité (hash mots de passe renforcé)
+bcrypt==4.1.3
+
+# Outils utiles
+Pillow==10.3.0          # gestion d’images (photos patients, logos factures)
+django-crispy-forms==2.1  # formulaires stylés
+crispy-bootstrap5==2024.2  # intégration bootstrap 5
+
+# Tests et linting
+pytest==8.2.0
+pytest-django==4.8.0
+black==24.4.2
+
+# Génération PDF alternative (canvas)
+reportlab==4.2.2

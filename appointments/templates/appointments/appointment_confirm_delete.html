@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+  <h2>Supprimer le rendez-vous</h2>
+  <p>Êtes-vous sûr de vouloir supprimer ce rendez-vous :
+     <strong>{{ appointment.patient }} – {{ appointment.date }} {{ appointment.time }}</strong> ?</p>
+  <form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">Confirmer la suppression</button>
+    <a href="{% url 'appointments:appointment_list' %}">Annuler</a>
+  </form>
+{% endblock %}

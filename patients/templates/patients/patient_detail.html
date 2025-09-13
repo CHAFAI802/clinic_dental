@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container d-flex justify-content-center align-items-center" style="min-height: 100vh;">
+  <div class="card shadow-lg p-4" style="width: 700px;">
+    <h2 class="text-center mb-4">Détails du patient</h2>
+
+    <table class="table table-borderless">
+      <tbody>
+        <tr>
+          <th scope="row" style="width: 200px;">Nom :</th>
+          <td>{{ patient.first_name }} {{ patient.last_name }}</td>
+        </tr>
+        <tr>
+          <th scope="row">Date de naissance :</th>
+          <td>{{ patient.date_of_birth }}</td>
+        </tr>
+        <tr>
+          <th scope="row">Téléphone :</th>
+          <td>{{ patient.phone }}</td>
+        </tr>
+        <tr>
+          <th scope="row">Email :</th>
+          <td>{{ patient.email|default:"—" }}</td>
+        </tr>
+        <tr>
+          <th scope="row">Adresse :</th>
+          <td>{{ patient.address|default:"—" }}</td>
+        </tr>
+        <tr>
+          <th scope="row">Historique médical :</th>
+          <td>{{ patient.medical_history|default:"—" }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="d-flex justify-content-between mt-4">
+      <a class="btn btn-outline-secondary" href="{% url 'prescriptions:create_prescription' patient.pk%}">📄 Générer ordonnance PDF</a>
+      <a href="{% url 'patients:patient_update' patient.pk %}" class="btn btn-warning">
+        <i class="bi bi-pencil-square"></i> Modifier
+      </a>
+      <a href="{% url 'patients:patient_delete' patient.pk %}" class="btn btn-danger">
+        <i class="bi bi-trash"></i> Supprimer
+      </a>
+      <a href="{% url 'patients:patient_list' %}" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Retour à la liste
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}
