@@ -1,39 +1,41 @@
 {% extends "base.html" %}
-{% load custom_tags %}
 {% block content %}
 <div class="container mt-4">
-  <h2>📦 Liste des produits</h2>
+  <h2>📦 Liste des mouvements</h2>
   <div class="mb-3">
-    <a href="{% url 'stock:product_create' %}" class="btn btn-primary">➕ Nouveau produit</a>
-    <a href="{% url 'stock:export_xlsx' %}" class="btn btn-success">📥 Export Excel</a>
-    <a href="{% url 'stock:movement_list' %}" class="btn btn-primary">➕ liste des mouvements</a>
+    <a href="{% url 'stock:movement_create' %}" class="btn btn-success">➕ Nouveau mouvement</a>
+    <a href="{% url 'stock:product_list' %}" class="btn btn-success">liste Des Produits</a>
+    <a href="{% url 'stock:export_xlsx' %}" class="btn btn-primary">📥 Export Excel</a>
   </div>
 
   <table class="table table-striped">
     <thead>
       <tr>
-        <th>Nom</th>
-        <th>Catégorie</th>
-        <th>Stock initial</th>
-        <th>Stock actuel</th>
+        <th>Date</th>
+        <th>Produit</th>
+        <th>Type</th>
+        <th>Quantité</th>
+        <th>Note</th>
         <th>Actions</th>
       </tr>
     </thead>
     <tbody>
-      {% for product in products %}
-      <tr class="{{ stock_colors|dict_get:product.id }}">
-        <td><a href="{% url 'stock:product_detail' product.pk %}">{{ product.name }}</a></td>
-        <td>{{ product.category }}</td>
-        <td>{{ product.quantity }}</td>
-        <td>{{ product.current_stock }}</td>
+      {% for m in movements %}
+      <tr>
+        <td>{{ m.date|date:"d/m/Y H:i" }}</td>
+        <td>{{ m.product.name }}</td>
+        <td>{{ m.get_movement_type_display }}</td>
+        <td>{{ m.quantity }}</td>
+        <td>{{ m.note }}</td>
         <td>
-          <a href="{% url 'stock:product_update' product.pk %}" class="btn btn-sm btn-primary">Modifier</a>
-          <a href="{% url 'stock:product_delete' product.pk %}" class="btn btn-sm btn-danger">Supprimer</a>
+          <a href="{% url 'stock:movement_update' m.pk %}" class="btn btn-sm btn-primary">Modifier</a>
+          <a href="{% url 'stock:movement_delete' m.pk %}" class="btn btn-sm btn-danger">Supprimer</a>
+          <a href="{% url 'stock:movement_detail' m.pk %}" class="btn btn-sm btn-secondary">Détails</a>
         </td>
       </tr>
       {% empty %}
       <tr>
-        <td colspan="5">Aucun produit enregistré.</td>
+        <td colspan="6">Aucun mouvement enregistré.</td>
       </tr>
       {% endfor %}
     </tbody>

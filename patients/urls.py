@@ -1,13 +1,19 @@
+# patients/urls.py
 from django.urls import path
-from . import views
+from .views import (
+    PatientListView,
+    PatientDetailView,
+    PatientCreateView,
+    PatientUpdateView,
+    PatientDeleteView,
+)
 
 app_name = "patients"
 
 urlpatterns = [
-    path("", views.patient_list, name="patient_list"),
-    path("<int:pk>/", views.patient_detail, name="patient_detail"),
-    path("add/", views.patient_create, name="patient_create"),
-    path("<int:pk>/edit/", views.patient_update, name="patient_update"),
-    path("<int:pk>/delete/", views.patient_delete, name="patient_delete"),
-    #path("<int:pk>/prescription/", views.prescription_pdf, name="prescription_pdf"),  # ➕ Ordonnance PDF
+    path("", PatientListView.as_view(), name="patient_list"),
+    path("add/", PatientCreateView.as_view(), name="patient_create"),
+    path("<int:pk>/", PatientDetailView.as_view(), name="patient_detail"),
+    path("<int:pk>/edit/", PatientUpdateView.as_view(), name="patient_update"),
+    path("<int:pk>/delete/", PatientDeleteView.as_view(), name="patient_delete"),
 ]

@@ -1,9 +1,20 @@
 # stock/views.py
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, View
 from django.urls import reverse_lazy
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
-from .models import Product
-from .forms import ProductForm
-from .mixins import AdminRequiredMixin
+from django.http import HttpResponse
+from openpyxl import Workbook
+from .models import Product, Movement
+from .forms import ProductForm, MovementForm
+from .mixins import AdminRequiredMixin 
+from django.http import HttpResponse
+from django.views import View
+from openpyxl import Workbook
+from openpyxl.styles import PatternFill, Font, Alignment, Border, Side
+from openpyxl.comments import Comment
+from datetime import datetime
+
+
+# ---- Product Views ----
 
 class ProductListView(AdminRequiredMixin, ListView):
     model = Product
@@ -11,20 +22,64 @@ class ProductListView(AdminRequiredMixin, ListView):
     context_object_name = 'products'
     paginate_by = 10
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        stock_colors = {}
+        for product in context['products']:
+            if product.current_stock > 50:
+                stock_colors[product.id] = 'table-success'
+            elif product.current_stock < 20:
+                stock_colors[product.id] = 'table-danger'
+            else:
+                stock_colors[product.id] = 'table-warning'
+        context['stock_colors'] = stock_colors
+        return context
+
 class ProductDetailView(AdminRequiredMixin, DetailView):
     model = Product
     template_name = 'stock/product_detail.html'
     context_object_name = 'product'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        product = self.object
+        if product.current_stock > 50:
+            context['stock_color'] = 'table-success'
+        elif product.current_stock < 20:
+            context['stock_color'] = 'table-danger'
+        else:
+            context['stock_color'] = 'table-warning'
+
+        today = datetime.today().date()
+
+        if product.expiration_date and product.expiration_date < today:
+            # produit déjà périmé
+            context['alert'] = True
+            context['alert_message'] = (
+                f"❌ Le produit '{product.name}' est déjà périmé depuis le "
+                f"{product.expiration_date.strftime('%d/%m/%Y')} – il faut s’en débarrasser."
+            )
+
+        elif product.expiration_date and (product.expiration_date - today).days <= 15:
+            # produit proche de la péremption
+            context['alert'] = True
+            context['alert_message'] = (
+                f"⚠️ Attention : le produit '{product.name}' approche de sa date de péremption "
+                f"({product.expiration_date.strftime('%d/%m/%Y')})."
+            )
+
+        else:
+            # produit OK
+            context['alert'] = False
+            context['alert_message'] = ''
+
+        return context
 
 class ProductCreateView(AdminRequiredMixin, CreateView):
     model = Product
     form_class = ProductForm
     template_name = 'stock/product_form.html'
     success_url = reverse_lazy('stock:product_list')
-
-    def form_valid(self, form):
-        form.instance.created_by = self.request.user
-        return super().form_valid(form)
 
 class ProductUpdateView(AdminRequiredMixin, UpdateView):
     model = Product
@@ -36,3 +91,134 @@ class ProductDeleteView(AdminRequiredMixin, DeleteView):
     model = Product
     template_name = 'stock/product_confirm_delete.html'
     success_url = reverse_lazy('stock:product_list')
+
+# ---- Movement Views ----
+
+class MovementListView(AdminRequiredMixin, ListView):
+    model = Movement
+    template_name = 'stock/movement_list.html'
+    context_object_name = 'movements'
+    paginate_by = 15
+    ordering = ['-date']
+
+class MovementCreateView(AdminRequiredMixin, CreateView):
+    model = Movement
+    form_class = MovementForm
+    template_name = 'stock/movement_form.html'
+    success_url = reverse_lazy('stock:movement_list')
+
+class MovementUpdateView(AdminRequiredMixin, UpdateView):
+    model = Movement
+    form_class = MovementForm
+    template_name = 'stock/movement_form.html'
+    success_url = reverse_lazy('stock:movement_list')
+
+class MovementDeleteView(AdminRequiredMixin, DeleteView):
+    model = Movement
+    template_name = 'stock/movement_confirm_delete.html'
+    success_url = reverse_lazy('stock:movement_list')
+
+class MovementDetailView(AdminRequiredMixin, DetailView):
+    model = Movement
+    template_name = 'stock/movement_detail.html'
+    context_object_name = 'movement'
+
+# ---- Export Excel ----
+
+
+class MovementExportXLSXView(AdminRequiredMixin, View):
+    def get(self, request, *args, **kwargs):
+        queryset = Movement.objects.select_related('product').order_by('date', 'id')
+
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Mouvements de stock"
+
+        headers = ['Date', 'Produit', 'Type', 'Quantité', 'Note', 'Stock restant', 'Expiration']
+        ws.append(headers)
+
+        header_fill = PatternFill(start_color="4F81BD", end_color="4F81BD", fill_type="solid")
+        header_font = Font(color="FFFFFF", bold=True)
+
+        # ajout bordure fine et alignement centré
+        thin_border = Border(
+            left=Side(style='thin'),
+            right=Side(style='thin'),
+            top=Side(style='thin'),
+            bottom=Side(style='thin')
+        )
+        center_alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
+
+        for cell in ws[1]:
+            cell.fill = header_fill
+            cell.font = header_font
+            cell.alignment = center_alignment
+            cell.border = thin_border  # bordure pour en-têtes
+
+        green_fill = PatternFill(start_color="C6EFCE", end_color="C6EFCE", fill_type="solid")
+        red_fill = PatternFill(start_color="FFC7CE", end_color="FFC7CE", fill_type="solid")
+        orange_fill = PatternFill(start_color="FFEB9C", end_color="FFEB9C", fill_type="solid")
+
+        stock_par_produit = {}
+
+        for m in queryset:
+            pid = m.product_id
+            if pid not in stock_par_produit:
+                stock_par_produit[pid] = m.product.current_stock
+
+            if m.movement_type == 'IN':
+                stock_par_produit[pid] -= m.quantity
+            else:
+                stock_par_produit[pid] += m.quantity
+
+            stock_restant = stock_par_produit[pid]
+
+            expiration = m.product.expiration_date
+            today = datetime.today().date()
+            alert = False
+            comment_text = ""
+            if expiration and (expiration - today).days <= 15:
+                alert = True
+                comment_text = f"⚠️ Produit proche de péremption : {expiration.strftime('%d/%m/%Y')}"
+
+            row = [
+                m.date.strftime("%d/%m/%Y %H:%M"),
+                m.product.name,
+                'Entrée' if m.movement_type == 'IN' else 'Sortie',
+                m.quantity,
+                m.note or '',
+                stock_restant,
+                expiration.strftime("%d/%m/%Y") if expiration else ''
+            ]
+            ws.append(row)
+
+            # Couleur Excel
+            stock = m.product.current_stock
+            if stock > 50:
+                fill = green_fill
+            elif stock < 20:
+                fill = red_fill
+            else:
+                fill = orange_fill
+            if alert:
+                fill = orange_fill
+
+            last_row_idx = ws.max_row
+            for col_idx, cell in enumerate(ws[last_row_idx], 1):
+                cell.fill = fill
+                cell.border = thin_border           # ajout bordure
+                cell.alignment = center_alignment   # ajout alignement centré
+                if alert and col_idx == 2:
+                    cell.comment = Comment(comment_text, "StockSystem")
+
+        # Ajuster largeur colonnes
+        for column_cells in ws.columns:
+            length = max(len(str(cell.value)) if cell.value else 0 for cell in column_cells)
+            ws.column_dimensions[column_cells[0].column_letter].width = length + 2
+
+        response = HttpResponse(
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = 'attachment; filename="mouvements.xlsx"'
+        wb.save(response)
+        return response

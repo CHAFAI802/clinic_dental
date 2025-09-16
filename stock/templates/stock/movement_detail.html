@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Détail du mouvement</h2>
+
+    <table class="table table-bordered">
+        <tr>
+            <th>Produit</th>
+            <td>{{ movement.product.name }}</td>
+        </tr>
+        <tr>
+            <th>Type</th>
+            <td>{{ movement.get_movement_type_display }}</td>
+        </tr>
+        <tr>
+            <th>Quantité</th>
+            <td>{{ movement.quantity }}</td>
+        </tr>
+        <tr>
+            <th>Date du mouvement</th>
+            <td>{{ movement.movement_date|date:"d/m/Y H:i" }}</td>
+        </tr>
+        <tr>
+            <th>Créé par</th>
+            <td>{{ movement.created_by }}</td>
+        </tr>
+        <tr>
+            <th>Notes</th>
+            <td>{{ movement.notes|default:"-" }}</td>
+        </tr>
+    </table>
+
+    <a href="{% url 'stock:movement_list' %}" class="btn btn-secondary">Retour à la liste</a>
+    <a href="{% url 'stock:movement_update' movement.pk %}" class="btn btn-primary">Modifier</a>
+    <a href="{% url 'stock:movement_delete' movement.pk %}" class="btn btn-danger">Supprimer</a>
+</div>
+{% endblock %}

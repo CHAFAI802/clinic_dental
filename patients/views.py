@@ -1,52 +1,57 @@
-from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth.decorators import login_required
+# patients/views.py
+from django.urls import reverse_lazy
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from .models import Patient
 from .forms import PatientForm
 
-@login_required
-def patient_list(request):
-    patients = Patient.objects.filter(medecin=request.user)  # <--- filtre
-    return render(request, "patients/patient_list.html", {"patients": patients})
+
+class PatientListView(LoginRequiredMixin, ListView):
+    model = Patient
+    template_name = "patients/patient_list.html"
+    context_object_name = "patients"
+    paginate_by = 10
+
+    def get_queryset(self):
+        return Patient.objects.filter(medecin=self.request.user).order_by("last_name")
 
 
-@login_required
-def patient_detail(request, pk):
-    patient = get_object_or_404(Patient, pk=pk)
-    return render(request, "patients/patient_detail.html", {"patient": patient})
+
+class PatientDetailView(LoginRequiredMixin, DetailView):
+    model = Patient
+    template_name = "patients/patient_detail.html"
+    context_object_name = "patient"
+
+    def get_queryset(self):
+        return Patient.objects.filter(medecin=self.request.user)
 
 
-@login_required
-def patient_create(request):
-    if request.method == "POST":
-        form = PatientForm(request.POST)
-        if form.is_valid():
-            patient = form.save(commit=False)
-            patient.medecin = request.user  # <--- on attache le user connecté
-            patient.save()
-            return redirect("patients:patient_list")
-        else:
-            print("Erreurs de validation :", form.errors)
-    else:
-        form = PatientForm()
-    return render(request, "patients/patient_form.html", {"form": form})
+class PatientCreateView(LoginRequiredMixin, CreateView):
+    model = Patient
+    form_class = PatientForm
+    template_name = "patients/patient_form.html"
+    success_url = reverse_lazy("patients:patient_list")
 
-@login_required
-def patient_update(request, pk):
-    patient = get_object_or_404(Patient, pk=pk)
-    if request.method == "POST":
-        form = PatientForm(request.POST, instance=patient)
-        if form.is_valid():
-            form.save()
-            return redirect("patients:patient_list")
-    else:
-        form = PatientForm(instance=patient)
-    return render(request, "patients/patient_form.html", {"form": form})
+    def form_valid(self, form):
+        # Associer automatiquement le médecin connecté au patient
+        form.instance.medecin = self.request.user
+        return super().form_valid(form)
 
-@login_required
-def patient_delete(request, pk):
-    patient = get_object_or_404(Patient, pk=pk)
-    if request.method == "POST":
-        patient.delete()
-        return redirect("patients:patient_list")
-    return render(request, "patients/patient_confirm_delete.html", {"patient": patient})
 
+class PatientUpdateView(LoginRequiredMixin, UpdateView):
+    model = Patient
+    form_class = PatientForm
+    template_name = "patients/patient_form.html"
+    success_url = reverse_lazy("patients:patient_list")
+
+    def get_queryset(self):
+        return Patient.objects.filter(medecin=self.request.user)
+
+
+class PatientDeleteView(LoginRequiredMixin, DeleteView):
+    model = Patient
+    template_name = "patients/patient_confirm_delete.html"
+    success_url = reverse_lazy("patients:patient_list")
+
+    def get_queryset(self):
+        return Patient.objects.filter(medecin=self.request.user)

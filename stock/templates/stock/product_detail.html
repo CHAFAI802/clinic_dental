@@ -2,12 +2,24 @@
 {% block content %}
 <div class="container mt-4">
   <h2>Détails du produit</h2>
-  <div class="card">
+
+  {% if alert %}
+  <div class="alert alert-warning">
+    {{ alert_message }}
+  </div>
+  {% endif %}
+
+  <div class="card {{ stock_color }}">
     <div class="card-body">
       <p><strong>Nom :</strong> {{ product.name }}</p>
       <p><strong>Catégorie :</strong> {{ product.category }}</p>
-      <p><strong>Quantité :</strong> {{ product.quantity }}</p>
+      <p><strong>Stock initial :</strong> {{ product.quantity }}</p>
+      <p><strong>Stock actuel :</strong> {{ product.current_stock }}</p>
       <p><strong>Description :</strong> {{ product.description|linebreaks }}</p>
+      <p><strong>Date d'expiration :</strong> 
+        {% if product.expiration_date %}{{ product.expiration_date|date:"d/m/Y" }}{% else %}Non définie{% endif %}
+      </p>
+
       <a href="{% url 'stock:product_update' product.pk %}" class="btn btn-primary">Modifier</a>
       <a href="{% url 'stock:product_delete' product.pk %}" class="btn btn-danger">Supprimer</a>
       <a href="{% url 'stock:product_list' %}" class="btn btn-secondary">Retour à la liste</a>

@@ -16,6 +16,6 @@ git clone https://github.com/CHAFAI802/clinic_dental.git
 cd clinic_dental
 python -m venv venv
 source venv/Scripts/activate  # sous Windows PowerShell
-pip install -r requirements.txt
+pip install -r requirements.txtùùùùùù
 python manage.py migrate
 python manage.py runserver
