@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="mb-0">Liste des prescriptions</h2>
+    
+  </div>
+
+  {% if prescriptions %}
+  <div class="table-responsive">
+    <table class="table table-striped table-hover align-middle">
+      <thead class="table-dark">
+        <tr>
+          <th>Patient</th>
+          <th>Rendez-vous</th>
+          <th>Texte</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for prescription in prescriptions %}
+        <tr>
+          <td>{{ prescription.appointment.patient.first_name }} {{ prescription.appointment.patient.last_name }}</td>
+          <td>{{ prescription.appointment.date|date:"d/m/Y" }}</td>
+          <td>{{ prescription.text|truncatechars:50 }}</td>
+          <td>
+            <a class="btn btn-primary" href="{% url 'prescriptions:prescription_create' prescription.pk  %}">➕ Nouvelle ordonnance</a>
+          </td>
+          <td>
+            <a class="btn btn-sm btn-outline-danger" href="{% url 'prescriptions:prescription_delete' prescription.pk %}"> Supprimer l'ordonnance </a>
+          </td>
+        </tr>
+        {% endfor %}
+
+      </tbody>
+      
+    </table>
+  </div>
+  {% else %}
+  <div class="alert alert-secondary">Aucune prescription enregistrée.</div>
+  {% endif %}
+
+  {% if prescriptions.has_other_pages %}
+  <nav aria-label="Pagination">
+    <ul class="pagination justify-content-center mt-3">
+      {% if prescriptions.has_previous %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ prescriptions.previous_page_number }}">Précédent</a>
+        </li>
+      {% else %}
+        <li class="page-item disabled"><span class="page-link">Précédent</span></li>
+      {% endif %}
+
+      {% for num in prescriptions.paginator.page_range %}
+        {% if prescriptions.number == num %}
+          <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+          {% else %}
+          <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+        {% endif %}
+      {% endfor %}
+
+      {% if prescriptions.has_next %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ prescriptions.next_page_number }}">Suivant</a>
+        </li>
+        {% else %}
+        <li class="page-item disabled"><span class="page-link">Suivant</span></li>
+      {% endif %}
+    </ul>
+  </nav>
+
+  {%endif%}
+  
+</div>
+{% endblock %}

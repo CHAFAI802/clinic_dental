@@ -1,18 +1,23 @@
+
 from django.urls import path
-from .views import *
-from .import views
-from django.views.generic import CreateView, UpdateView, DeleteView
+from .views import (
+    BillingListView,
+    BillingCreateView,
+    BillingUpdateView,
+    BillingDeleteView,
+    BillingTogglePaidView,
+    BillingDetailView,
+    generate_billing_pdf,  # si tu veux le PDF
+)
 
 app_name = "billing"
 
 urlpatterns = [
-    path("", views.invoice_list, name="invoice_list"),
-    path("<int:pk>/", views.invoice_detail, name="invoice_detail"),
-    path("add/", views.invoice_create, name="invoice_create"),
-    path("<int:pk>/edit/", views.invoice_update, name="invoice_update"),
-    path("<int:pk>/delete/", views.invoice_delete, name="invoice_delete"),
-    path("<int:pk>/pdf/", views.invoice_pdf, name="invoice_pdf"),  # ➕ Génération PDF
-    path('<int:invoice_id>/items/add/', InvoiceItemCreateView.as_view(), name='invoiceitem_create'),
-    path('items/<int:pk>/edit/', InvoiceItemUpdateView.as_view(), name='invoiceitem_update'),
-    path('items/<int:pk>/delete/', InvoiceItemDeleteView.as_view(), name='invoiceitem_delete'),
+    path('', BillingListView.as_view(), name='billing_list'),
+    path('<int:pk>/detail',BillingDetailView.as_view(), name='billing_detail'),
+    path('add/', BillingCreateView.as_view(), name='billing_add'),
+    path('<int:pk>/edit/', BillingUpdateView.as_view(), name='billing_edit'),
+    path('<int:pk>/delete/', BillingDeleteView.as_view(), name='billing_delete'),
+    path('<int:pk>/toggle-paid/', BillingTogglePaidView.as_view(), name='billing_toggle_paid'),
+    path('<int:pk>/pdf/', generate_billing_pdf, name='billing_pdf'),  # optionnel
 ]

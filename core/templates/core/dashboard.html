@@ -1,40 +1,81 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="container mt-4">
-    <h2>Tableau de bord - {{ name}}</h2>
+  <h1 class="mb-4">Tableau de bord</h1>
 
-    {% if name == "Admin" %}
-        <p>Total Patients : {{ patients_count }}</p>
-        <p>Total Rendez-vous : {{ appointments_count }}</p>
-    {% elif name == "Médecin" %}
-        <h4>Vos rendez-vous</h4>
-        <ul>
-            {% for rdv in appointments %}
-                <li>{{ rdv.date }} - {{ rdv.patient }}</li>
-            {% empty %}
-                <li>Aucun rendez-vous</li>
-            {% endfor %}
-        </ul>
-    {% elif name == "Secrétaire" %}
-        <h4>Patients</h4>
-        <ul>
-            {% for patient in patients %}
-                <li>{{ patient.first_name }} {{ patient.last_name }}</li>
-            {% empty %}
-                <li>Aucun patient</li>
-            {% endfor %}
-        </ul>
+  <div class="row g-4">
+    <!-- Patients -->
+    <div class="col-md-3">
+      <div class="card text-center shadow-sm border-0" style="background:#e8f4fd;">
+        <div class="card-body">
+          <i class="bi bi-people display-5 text-primary"></i>
+          <h5 class="card-title mt-2">Patients</h5>
+          <p class="display-6 fw-bold">{{ stats.patients }}</p>
+          <a href="{% url 'patients:patient_list' %}" class="btn btn-outline-primary btn-sm">Voir</a>
+        </div>
+      </div>
+    </div>
 
-        <h4>Rendez-vous</h4>
-        <ul>
-            {% for rdv in appointments %}
-                <li>{{ rdv.date }} - {{ rdv.patient }}</li>
-            {% empty %}
-                <li>Aucun rendez-vous</li>
-            {% endfor %}
-        </ul>
-    {% else %}
-        <p>Bienvenue sur le tableau de bord.</p>
+    <!-- Rendez-vous -->
+    <div class="col-md-3">
+      <div class="card text-center shadow-sm border-0" style="background:#fdf3e8;">
+        <div class="card-body">
+          <i class="bi bi-calendar-event display-5 text-warning"></i>
+          <h5 class="card-title mt-2">Rendez-vous</h5>
+          <p class="display-6 fw-bold">{{ stats.appointments }}</p>
+          <a href="{% url 'appointments:appointment_list' %}" class="btn btn-outline-warning btn-sm">Voir</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ordonnances -->
+    <div class="col-md-3">
+      <div class="card text-center shadow-sm border-0" style="background:#f0f9f0;">
+        <div class="card-body">
+          <i class="bi bi-file-medical display-5 text-success"></i>
+          <h5 class="card-title mt-2">Prescriptions</h5>
+          <p class="display-6 fw-bold">{{ stats.prescriptions }}</p>
+          <a href="{% url 'prescriptions:prescription_list' %}" class="btn btn-outline-success btn-sm">Voir</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Factures -->
+    <div class="col-md-3">
+      <div class="card text-center shadow-sm border-0" style="background:#fdf0f5;">
+        <div class="card-body">
+          <i class="bi bi-receipt display-5 text-danger"></i>
+          <h5 class="card-title mt-2">Factures</h5>
+          <p class="display-6 fw-bold">{{ stats.billings }}</p>
+          <a href="{% url 'billing:billing_list' %}" class="btn btn-outline-danger btn-sm">Voir</a>
+        </div>
+      </div>
+    </div>
+
+    {% if stats.products %}
+    <!-- Bloc Stock -->
+    <div class="col-md-3">
+      <div class="card text-center shadow-sm border-0" style="background:#eef6ff;">
+        <div class="card-body">
+          <i class="bi bi-box-seam display-5 text-info"></i>
+          <h5 class="card-title mt-2">Produits</h5>
+          <p class="display-6 fw-bold">{{ stats.products }}</p>
+          <a href="{% url 'stock:product_list' %}" class="btn btn-outline-info btn-sm">Voir</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="card text-center shadow-sm border-0" style="background:#eef6ff;">
+        <div class="card-body">
+          <i class="bi bi-arrow-left-right display-5 text-info"></i>
+          <h5 class="card-title mt-2">Mouvements</h5>
+          <p class="display-6 fw-bold">{{ stats.movements }}</p>
+          <a href="{% url 'stock:movement_list' %}" class="btn btn-outline-info btn-sm">Voir</a>
+        </div>
+      </div>
+    </div>
     {% endif %}
+  </div>
 </div>
 {% endblock %}

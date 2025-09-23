@@ -42,7 +42,7 @@ INSTALLED_APPS = [
     'accounts',
     'appointments',
     'billing',
-    'patients',
+    'patients.apps.PatientsConfig',
     'prescriptions',
     'crispy_forms',
     'crispy_bootstrap5',
@@ -86,18 +86,11 @@ WSGI_APPLICATION = 'dental_clinic.wsgi.application'
 
 DATABASES = {
     'default': {
-'ENGINE': 'django.db.backends.mysql',
-'NAME': os.getenv('DB_NAME', 'dental_clinic'),
-'USER': os.getenv('DB_USER', 'root'),
-'PASSWORD': os.getenv('DB_PASSWORD', ''),
-'HOST': os.getenv('DB_HOST', '127.0.0.1'),
-'PORT': os.getenv('DB_PORT', '3306'),
-'OPTIONS': {
-'charset': 'utf8mb4',
-'sql_mode': 'STRICT_TRANS_TABLES',
-}
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
 
 # --- Authentification ---
 AUTH_USER_MODEL = "accounts.CustomUser"  

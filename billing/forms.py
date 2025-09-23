@@ -1,22 +1,18 @@
 from django import forms
-from .models import Invoice, Payment,InvoiceItem
+from .models import Billing
 
-class InvoiceForm(forms.ModelForm):
+class BillingForm(forms.ModelForm):
     class Meta:
-        model = Invoice
-        fields = ["patient", "amount", "status"]
-
-class PaymentForm(forms.ModelForm):
-    class Meta:
-        model = Payment
-        fields = ["invoice", "amount", "method"]
-
-class InvoiceItemForm(forms.ModelForm):
-    class Meta:
-        model = InvoiceItem
-        fields = ['product', 'quantity', 'price']
+        model = Billing
+        fields = ['appointment', 'amount', 'paid']
+        labels = {
+            'appointment': 'Rendez-vous',
+            'amount': 'Montant (€)',
+            'paid': 'Payée ?'
+        }
         widgets = {
-            'product': forms.Select(attrs={'class': 'form-select'}),
-            'quantity': forms.NumberInput(attrs={'class': 'form-control'}),
-            'price': forms.NumberInput(attrs={'class': 'form-control'}),
+            # Pour avoir un rendu Bootstrap plus joli
+            'amount': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'appointment': forms.Select(attrs={'class': 'form-select'}),
+            'paid': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }

@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>{% if form.instance.pk %}Modifier{% else %}Nouvelle{% endif %} ordonnance</h2>
+
+<form method="post">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit" class="btn btn-success">
+    {% if form.instance.pk %}Mettre à jour{% else %}Enregistrer{% endif %}
+  </button>
+  <a href="{% url 'prescriptions:prescription_list' %}" class="btn btn-secondary">Retour</a>
+</form>
+{% endblock %}

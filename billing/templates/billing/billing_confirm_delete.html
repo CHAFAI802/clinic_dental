@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Supprimer la facture {{ billing.id }} ?</h2>
+<form method="post">
+  {% csrf_token %}
+  <button type="submit" class="btn btn-danger">Confirmer</button>
+  <a href="{% url 'billing:billing_list' %}" class="btn btn-secondary">Annuler</a>
+</form>
+{% endblock %}

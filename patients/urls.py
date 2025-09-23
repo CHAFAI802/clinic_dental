@@ -1,11 +1,7 @@
-# patients/urls.py
 from django.urls import path
-from .views import (
-    PatientListView,
-    PatientDetailView,
-    PatientCreateView,
-    PatientUpdateView,
-    PatientDeleteView,
+from .views import AppointmentToggleDoneView
+from .views import(
+    PatientListView, PatientDetailView, PatientCreateView, PatientUpdateView, PatientDeleteView,
 )
 
 app_name = "patients"
@@ -16,4 +12,8 @@ urlpatterns = [
     path("<int:pk>/", PatientDetailView.as_view(), name="patient_detail"),
     path("<int:pk>/edit/", PatientUpdateView.as_view(), name="patient_update"),
     path("<int:pk>/delete/", PatientDeleteView.as_view(), name="patient_delete"),
+
+    
 ]
+
+

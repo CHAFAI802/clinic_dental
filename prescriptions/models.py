@@ -3,7 +3,7 @@ from django.db import models
 from appointments.models import Appointment  
 
 class Prescription(models.Model):
-    appointment = models.ForeignKey(Appointment, on_delete=models.CASCADE)
+    appointment = models.ForeignKey(Appointment, on_delete=models.CASCADE, related_name='prescriptions')
     text = models.TextField()
 
     def __str__(self):

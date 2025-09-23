@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Détails facture</h1>
+
+<p><strong>Patient :</strong> {{ object.appointment.patient }}</p>
+<p><strong>Date rendez-vous :</strong> {{  billing.issued_at|date:"d/m/Y H:i" }}</p>
+<p><strong>Montant :</strong> {{ object.amount }} €</p>
+<p><strong>Émise le :</strong> {{ object.issued_at|date:"d/m/Y H:i" }}</p>
+
+<a href="{% url 'billing:billing_list' %}" class="btn btn-secondary">Retour</a>
+{% endblock %}

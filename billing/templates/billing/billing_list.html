@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Liste des factures</h2>
+<a href="{% url 'billing:billing_add' %}" class="btn btn-success mb-3">Ajouter une facture</a>
+
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Patient</th>
+      <th>Montant</th>
+      <th>Payée ?</th>
+      <th>Date émission</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for billing in billings %}
+    <tr>
+      <td>{{ billing.id }}</td>
+      <td>{{ billing.appointment.patient }} </td>
+      <td>{{ billing.amount }} €</td>
+      <td>{% if billing.paid %}Oui{% else %}Non{% endif %}</td>
+      <td>{{ billing.issued_at|date:"d/m/Y H:i" }}</td>
+      <td>
+        <a href="{% url 'billing:billing_edit' billing.pk %}" class="btn btn-sm btn-warning">Modifier</a>
+      </td>
+      <td>
+        <a href="{% url 'billing:billing_detail' billing.pk %}" class="btn btn-success mb-3">Detail de la facture </a>
+      </td>
+      <td>
+        <form method="post"
+                      action="{% url 'billing:billing_delete' billing.pk %}"
+                      class="d-inline-block"
+                      onsubmit="return confirm('Confirmer la suppression du rendez-vous de {{ appointment.patient }} ?');">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-sm btn-outline-danger">Supprimer</button>
+                </form>
+      </td>
+    </tr>
+    {% empty %}
+    <tr>
+      <td colspan="6">Aucune facture trouvée.</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% if is_paginated %}
+  <div class="alert alert-info">
+    Total objets : {{ paginator.count }}<br>
+    Nombre de pages : {{ paginator.num_pages }}<br>
+    Page actuelle : {{ page_obj.number }}
+  </div>
+
+  <nav>
+    <ul class="pagination">
+      {% if page_obj.has_previous %}
+        <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Précédent</a></li>
+      {% endif %}
+
+      {% for num in page_obj.paginator.page_range %}
+        {% if page_obj.number == num %}
+          <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+        {% else %}
+          <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+        {% endif %}
+      {% endfor %}
+
+      {% if page_obj.has_next %}
+        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Suivant</a></li>
+      {% endif %}
+    </ul>
+  </nav>
+{% endif %}
+{% endblock %}

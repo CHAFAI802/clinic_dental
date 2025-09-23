@@ -39,7 +39,7 @@
               <td>{{ appointment.patient }}</td>
               <td>{{ appointment.date|date:"d/m/Y" }}</td>
               <td>{{ appointment.time|time:"H:i" }}</td>
-              <td>{{ appointment.doctor }}</td>
+              <td>{{ appointment.medecin }}</td>
               <td class="text-end">
                 <a class="btn btn-sm btn-outline-primary" href="{% url 'appointments:appointment_detail' appointment.pk %}">Voir</a>
                 <a class="btn btn-sm btn-outline-secondary" href="{% url 'appointments:appointment_update' appointment.pk %}">Modifier</a>

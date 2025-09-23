@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+<div class="container mt-4">
+  <h1 class="mb-4">Tableau de bord</h1>
+
+  <div class="row">
+    <div class="col-md-3">
+      <a href="{% url 'patients:patient_list' %}" class="text-decoration-none">
+        <div class="card text-center">
+          <div class="card-body">
+            <h5 class="card-title">Patients</h5>
+            <p class="display-6 fw-bold">{{ stats.patients }}</p>
+            <span class="btn btn-outline-primary btn-sm">Voir</span>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <div class="col-md-3">
+      <a href="{% url 'appointments:appointment_list' %}" class="text-decoration-none">
+        <div class="card text-center">
+          <div class="card-body">
+            <h5 class="card-title">Rendez-vous</h5>
+            <p class="display-6 fw-bold">{{ stats.appointments }}</p>
+            <span class="btn btn-outline-primary btn-sm">Voir</span>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <div class="col-md-3">
+      <a href="{% url 'prescriptions:prescription_list' %}" class="text-decoration-none">
+        <div class="card text-center">
+          <div class="card-body">
+            <h5 class="card-title">Prescriptions</h5>
+            <p class="display-6 fw-bold">{{ stats.prescriptions }}</p>
+            <span class="btn btn-outline-primary btn-sm">Voir</span>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <div class="col-md-3">
+      <a href="{% url 'billing:billing_list' %}" class="text-decoration-none">
+        <div class="card text-center">
+          <div class="card-body">
+            <h5 class="card-title">Factures</h5>
+            <p class="display-6 fw-bold">{{ stats.billings }}</p>
+            <span class="btn btn-outline-primary btn-sm">Voir</span>
+          </div>
+        </div>
+      </a>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

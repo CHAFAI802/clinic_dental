@@ -1,7 +1,7 @@
 <ul class="list-group">
   {% for obj in results %}
     <li class="list-group-item">
-      {{ obj.patient.nom }} – {{ obj.date|date:"d/m/Y" }}
+      {{ obj.patient }} – {{ obj.date|date:"d/m/Y" }}
     </li>
   {% empty %}
     <li class="list-group-item">Aucun résultat</li>

@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2 class="mb-4">{% if object %}Modifier{% else %}Nouvelle{% endif %} facture</h2>
+
+  <form method="post">
+    {% csrf_token %}
+
+    <div class="mb-3">
+      <label for="{{ form.appointment.id_for_label }}" class="form-label">
+        {{ form.appointment.label }}
+      </label>
+      {{ form.appointment }}
+      {% if form.appointment.errors %}
+        <div class="text-danger">{{ form.appointment.errors }}</div>
+      {% endif %}
+    </div>
+
+    <div class="mb-3">
+      <label for="{{ form.amount.id_for_label }}" class="form-label">
+        {{ form.amount.label }}
+      </label>
+      {{ form.amount }}
+      {% if form.amount.errors %}
+        <div class="text-danger">{{ form.amount.errors }}</div>
+      {% endif %}
+    </div>
+
+    <div class="form-check mb-3">
+      {{ form.paid }}
+      <label class="form-check-label" for="{{ form.paid.id_for_label }}">
+        {{ form.paid.label }}
+      </label>
+      {% if form.paid.errors %}
+        <div class="text-danger">{{ form.paid.errors }}</div>
+      {% endif %}
+    </div>
+
+    <button type="submit" class="btn btn-success">Enregistrer</button>
+    <a href="{% url 'billing:billing_list' %}" class="btn btn-secondary">Retour</a>
+  </form>
+</div>
+{% endblock %}
