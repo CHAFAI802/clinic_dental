@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2>Ordonnances de {{ patient.first_name }} {{ patient.last_name }}</h2>
+  <a href="{% url 'patients:patient_detail' patient.pk %}" class="btn btn-secondary mb-3">
+    Retour au patient
+  </a>
+
+  {% if prescriptions %}
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Date du rendez-vous</th>
+          <th>Texte</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in prescriptions %}
+          <tr>
+            <td>
+              <!-- lien vers le détail de l’ordonnance -->
+              <a href="{% url 'prescriptions:prescription_detail' p.pk %}">
+                {{ p.appointment.date|date:"d/m/Y" }}
+              </a>
+            </td>
+            <td>{{ p.text|linebreaksbr }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <div class="alert alert-secondary">
+      Aucune ordonnance pour ce patient.
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

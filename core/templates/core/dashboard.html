@@ -54,28 +54,67 @@
 
     {% if stats.products %}
     <!-- Bloc Stock -->
-    <div class="col-md-3">
-      <div class="card text-center shadow-sm border-0" style="background:#eef6ff;">
-        <div class="card-body">
-          <i class="bi bi-box-seam display-5 text-info"></i>
-          <h5 class="card-title mt-2">Produits</h5>
-          <p class="display-6 fw-bold">{{ stats.products }}</p>
-          <a href="{% url 'stock:product_list' %}" class="btn btn-outline-info btn-sm">Voir</a>
-        </div>
+   <div class="col-md-3">
+    <div class="card text-center shadow-sm border-0" style="background:#eef6ff;">
+      <div class="card-body">
+        <i class="bi bi-box-seam display-5 text-info"></i>
+          <h5 class="card-title mt-2">
+           Produits
+           {% if stats.alerts_count > 0 %}
+            <button class="btn btn-warning position-relative mb-3"
+              type="button"
+                data-bs-toggle="offcanvas"
+                data-bs-target="#alertsOffcanvas"
+                aria-controls="alertsOffcanvas">
+                Alertes
+                <span class="badge bg-danger position-absolute top-0 start-100 translate-middle">
+                  {{ stats.alerts_count }}
+                </span>
+            </button>
+           {%endif%}
+          </h5>
+        <p class="display-6 fw-bold">{{ stats.products }}</p>
+        <a href="{% url 'stock:product_list' %}" class="btn btn-outline-info btn-sm">Voir</a>
       </div>
     </div>
+   </div>
+   {% endif %}
 
-    <div class="col-md-3">
-      <div class="card text-center shadow-sm border-0" style="background:#eef6ff;">
-        <div class="card-body">
-          <i class="bi bi-arrow-left-right display-5 text-info"></i>
-          <h5 class="card-title mt-2">Mouvements</h5>
-          <p class="display-6 fw-bold">{{ stats.movements }}</p>
-          <a href="{% url 'stock:movement_list' %}" class="btn btn-outline-info btn-sm">Voir</a>
-        </div>
-      </div>
-    </div>
-    {% endif %}
   </div>
 </div>
+<!-- Offcanvas Alertes -->
+<div class="offcanvas offcanvas-end" tabindex="-1" id="alertsOffcanvas" aria-labelledby="alertsOffcanvasLabel">
+  <div class="offcanvas-header">
+    <h5 class="offcanvas-title" id="alertsOffcanvasLabel">Produits en alerte</h5>
+    <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Fermer"></button>
+  </div>
+  <div class="offcanvas-body">
+    <h6 class="fw-bold">Stock faible</h6>
+    <ul class="list-group mb-3">
+      {% for p in stats.produits_stock_faible %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          {{ p.name }}
+          <span class="badge bg-secondary">{{ p.current_stock }}</span>
+        </li>
+      {% empty %}
+        
+      {% endfor %}
+    </ul>
+
+    <h6 class="fw-bold">Expiration proche</h6>
+    <ul class="list-group">
+      {% for p in stats.produits_peremption_proche %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          {{ p.name }}
+          <span class="badge bg-danger">{{ p.expiration_date|date:"d/m/Y" }}</span>
+        </li>
+      {% empty %}
+        
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+
 {% endblock %}
+
+

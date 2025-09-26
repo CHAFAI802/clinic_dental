@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load custom_tags %}
+
 {% block content %}
 <div class="container mt-4">
   <h2>📦 Liste des produits</h2>
@@ -16,6 +17,7 @@
         <th>Catégorie</th>
         <th>Stock initial</th>
         <th>Stock actuel</th>
+        <th>Variation</th>   {# ✅ colonne ajoutée #}
         <th>Actions</th>
       </tr>
     </thead>
@@ -26,6 +28,7 @@
         <td>{{ product.category }}</td>
         <td>{{ product.quantity }}</td>
         <td>{{ product.current_stock }}</td>
+        <td>{{ stock_variations|dict_get:product.id|floatformat:1 }}%</td> {# ✅ affichage % #}
         <td>
           <a href="{% url 'stock:product_update' product.pk %}" class="btn btn-sm btn-primary">Modifier</a>
           <a href="{% url 'stock:product_delete' product.pk %}" class="btn btn-sm btn-danger">Supprimer</a>
@@ -33,7 +36,7 @@
       </tr>
       {% empty %}
       <tr>
-        <td colspan="5">Aucun produit enregistré.</td>
+        <td colspan="6">Aucun produit enregistré.</td>
       </tr>
       {% endfor %}
     </tbody>

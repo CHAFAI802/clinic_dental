@@ -1,6 +1,12 @@
 # stock/models.py
 from django.db import models
-from datetime import date
+from datetime import date 
+from django.db import models
+from django.db.models import Sum
+from django.db.models.signals import post_save, post_delete
+from django.dispatch import receiver
+
+
 
 class Category(models.Model):
     CATEGORY_CHOICES = [
@@ -14,24 +20,23 @@ class Category(models.Model):
     def __str__(self):
         return self.get_name_display()
 
+
+
+
 class Product(models.Model):
     name = models.CharField(max_length=200)
-    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True,)
-    quantity = models.PositiveIntegerField(default=0)
+    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
+    quantity = models.PositiveIntegerField(default=0)  # stock initial
+    last_stock = models.IntegerField(default=0)  # stock avant dernier mouvement
+    current_stock = models.IntegerField(default=0)  # stock actuel recalculé
     description = models.TextField(blank=True)
     expiration_date = models.DateField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    @property
-    def current_stock(self):
-        # Calculer le stock en fonction des mouvements
-        stock_in = sum(m.quantity for m in self.movements.filter(movement_type='IN'))
-        stock_out = sum(m.quantity for m in self.movements.filter(movement_type='OUT'))
-        return self.quantity + stock_in - stock_out
-
     def __str__(self):
         return self.name
+
 
 class Movement(models.Model):
     MOVEMENT_CHOICES = [
@@ -41,8 +46,11 @@ class Movement(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='movements')
     movement_type = models.CharField(max_length=3, choices=MOVEMENT_CHOICES)
     quantity = models.PositiveIntegerField()
+    last_stock = models.IntegerField(default=0)  # stock avant ce mouvement
     note = models.TextField(blank=True)
     date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.get_movement_type_display()} - {self.product.name} ({self.quantity})"
+
+

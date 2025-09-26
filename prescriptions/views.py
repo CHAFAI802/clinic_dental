@@ -1,19 +1,30 @@
 # prescriptions/views.py
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
+from django.forms import inlineformset_factory
 from django.shortcuts import get_object_or_404
-from django.urls import reverse
-from .models import Prescription
-from .forms import PrescriptionForm
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import (
     ListView, DetailView, CreateView, UpdateView, DeleteView
 )
-import io
-from django.http import FileResponse, Http404
+from .forms import PrescriptionForm,PrescriptionItemFormSet,PrescriptionItem,PrescriptionItemForm,Prescription
+from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
+from .utils.pdf_prescription import draw_prescription
+PrescriptionItemFormSet = inlineformset_factory(
+    Prescription, PrescriptionItem, form=PrescriptionItemForm,
+    extra=1, can_delete=True
+)
 from reportlab.pdfgen import canvas
-from reportlab.lib.pagesizes import A4
-from appointments.models import Appointment 
+from reportlab.lib.pagesizes import A5
+from reportlab.lib.units import mm
+import os
+from .models import Prescription
+from appointments.models import Appointment, Patient
+from django.conf import settings 
+
+# ================================
+# LISTES DES PRESCRIPTIONS
+# ================================
 
 class PatientPrescriptionsListView(LoginRequiredMixin, ListView):
     model = Prescription
@@ -22,10 +33,37 @@ class PatientPrescriptionsListView(LoginRequiredMixin, ListView):
     paginate_by = 10
 
     def get_queryset(self):
-        return Prescription.objects.filter(
-            appointment__patient__medecin=self.request.user
-        )
+        return (Prescription.objects
+                .filter(appointment__patient__medecin=self.request.user)
+                .select_related("appointment")
+                .order_by("-appointment__date"))
 
+
+class PatientAllPrescriptionsListView(LoginRequiredMixin, ListView):
+    model = Prescription
+    template_name = "prescriptions/patient_all_prescriptions.html"
+    context_object_name = "prescriptions"
+    paginate_by = 10
+
+    def get_queryset(self):
+        self.patient = get_object_or_404(Patient, pk=self.kwargs["pk"])
+        return (Prescription.objects
+                .filter(
+                    appointment__patient=self.patient,
+                    appointment__patient__medecin=self.request.user
+                )
+                .select_related("appointment")
+                .order_by("-appointment__date"))
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["patient"] = self.patient
+        return context
+
+
+# ================================
+# DETAIL D’UNE PRESCRIPTION
+# ================================
 
 class PatientPrescriptionDetailView(LoginRequiredMixin, DetailView):
     model = Prescription
@@ -34,9 +72,13 @@ class PatientPrescriptionDetailView(LoginRequiredMixin, DetailView):
 
     def get_queryset(self):
         return Prescription.objects.filter(
-            appointment__medecin=self.request.user
+            appointment__patient__medecin=self.request.user
         )
 
+
+# ================================
+# CREATION / MODIFICATION / SUPPRESSION
+# ================================
 class PatientPrescriptionCreateView(LoginRequiredMixin, CreateView):
     model = Prescription
     form_class = PrescriptionForm
@@ -48,22 +90,32 @@ class PatientPrescriptionCreateView(LoginRequiredMixin, CreateView):
         if not appointment_id and 'appointment' in form.fields:
             form.fields['appointment'].queryset = Appointment.objects.filter(medecin=self.request.user)
         return form
-    
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if self.request.POST:
+            context['formset'] = PrescriptionItemFormSet(self.request.POST)
+        else:
+            context['formset'] = PrescriptionItemFormSet()
+        return context
 
     def form_valid(self, form):
+        context = self.get_context_data()
+        formset = context['formset']
+
         appointment_id = self.kwargs.get("appointment_id")
         if appointment_id:
-            # Cas où on a déjà un rendez-vous dans l'URL
             appointment = get_object_or_404(Appointment, pk=appointment_id, medecin=self.request.user)
-            form.instance.prescription = appointment
-        # sinon le champ appointment est rempli par l'utilisateur dans le formulaire
+            form.instance.appointment = appointment
+
+        self.object = form.save()  # on sauvegarde la prescription
+        if formset.is_valid():
+            formset.instance = self.object
+            formset.save()
         return super().form_valid(form)
 
     def get_success_url(self):
-        # redirection vers la liste des prescriptions du patient concerné
-        return reverse('prescriptions:prescription_list')
-    
-
+        return reverse('prescriptions:patient_all_prescriptions', args=[self.object.appointment.patient.pk])
 
 
 
@@ -72,58 +124,47 @@ class PatientPrescriptionUpdateView(LoginRequiredMixin, UpdateView):
     model = Prescription
     form_class = PrescriptionForm
     template_name = 'prescriptions/prescription_form.html'
-    success_url = reverse_lazy('prescriptions:prescription_list')
 
     def get_queryset(self):
         return Prescription.objects.filter(
-            appointment__medecin=self.request.user
+            appointment__patient__medecin=self.request.user
         )
+
+    def get_success_url(self):
+        return reverse('prescriptions:patient_all_prescriptions', args=[self.object.appointment.patient.pk])
 
 
 class PatientPrescriptionDeleteView(LoginRequiredMixin, DeleteView):
     model = Prescription
     template_name = "prescriptions/prescription_confirm_delete.html"
-    success_url = reverse_lazy("prescriptions:prescription_list")
 
     def get_queryset(self):
         return Prescription.objects.filter(
-            appointment__medecin=self.request.user
+            appointment__patient__medecin=self.request.user
         )
 
+    def get_success_url(self):
+        return reverse('prescriptions:patient_all_prescriptions', args=[self.object.appointment.patient.pk])
+
+
+# ================================
+# PDF
+# ================================
 
 @login_required
-def generate_prescription_pdf(request, pk):
-    """Génère un PDF pour une ordonnance Prescription donnée"""
-    prescription = get_object_or_404(Prescription, pk=pk)
-
-    # Contrôle d'accès : seul le médecin du patient peut voir
-    if prescription.appointment.medecin != request.user:
-        raise Http404("Vous n'avez pas accès à cette ordonnance")
-
-    buffer = io.BytesIO()
-    p = canvas.Canvas(buffer, pagesize=A4)
-    width, height = A4
-
-    # --------- En-tête ----------
-    p.setFont("Helvetica-Bold", 16)
-    p.drawString(200, 800, "ORDONNANCE")
-
-    # --------- Informations ----------
-    p.setFont("Helvetica", 12)
-    p.drawString(50, 750, f"Patient : {prescription.appointment.patient}")
-    p.drawString(50, 730, f"Date RDV : {prescription.appointment.date}")
-    p.drawString(50, 710, f"Texte : {prescription.text}")
-
-    # --------- Pied de page ----------
-    p.setFont("Helvetica-Oblique", 10)
-    p.drawString(50, 50, "Cabinet Dentaire - Ordonnance générée automatiquement")
-
-    p.showPage()
-    p.save()
-
-    buffer.seek(0)
-    return FileResponse(
-        buffer,
-        as_attachment=True,
-        filename=f"ordonnance_{prescription.id}.pdf"
+def prescription_pdf_view(request, pk):
+    prescription = get_object_or_404(
+        Prescription,
+        pk=pk,
+        appointment__patient__medecin=request.user
     )
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'inline; filename="ordonnance_{prescription.pk}.pdf"'
+
+    c = canvas.Canvas(response, pagesize=A5)
+    draw_prescription(c, prescription)
+    c.showPage()
+    c.save()
+
+    return response

@@ -10,6 +10,8 @@ from django.views import View
 from .models import Patient
 from .forms import PatientForm
 from appointments.models import Appointment
+from django.db.models import Q
+
 
 # --- Patients ---
 class PatientListView(LoginRequiredMixin, ListView):
@@ -19,7 +21,29 @@ class PatientListView(LoginRequiredMixin, ListView):
     paginate_by = 10
 
     def get_queryset(self):
-        return Patient.objects.filter(medecin=self.request.user)
+        qs = Patient.objects.filter(medecin=self.request.user)
+        q = self.request.GET.get("q")
+        if q:
+            # découpe la chaîne par espaces
+            for term in q.split():
+                qs = qs.filter(
+                    Q(first_name__icontains=term) |
+                    Q(last_name__icontains=term) |
+                    Q(phone__icontains=term) |
+                    Q(email__icontains=term)
+                )
+        return qs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["q"] = self.request.GET.get("q", "")
+        return context
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["q"] = self.request.GET.get("q", "")
+        return context
+
     
 class PatientDetailView(LoginRequiredMixin, DetailView):
     model=Patient

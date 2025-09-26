@@ -5,7 +5,7 @@
 
   {% if alert %}
   <div class="alert alert-warning">
-    {{ alert_message }}
+    {{ alert_message|safe }}
   </div>
   {% endif %}
 
@@ -15,9 +15,15 @@
       <p><strong>Catégorie :</strong> {{ product.category }}</p>
       <p><strong>Stock initial :</strong> {{ product.quantity }}</p>
       <p><strong>Stock actuel :</strong> {{ product.current_stock }}</p>
+      <p><strong>Variation depuis dernier mouvement :</strong>
+        {{ stock_variation|floatformat:1 }}%</p>
       <p><strong>Description :</strong> {{ product.description|linebreaks }}</p>
       <p><strong>Date d'expiration :</strong> 
-        {% if product.expiration_date %}{{ product.expiration_date|date:"d/m/Y" }}{% else %}Non définie{% endif %}
+        {% if product.expiration_date %}
+          {{ product.expiration_date|date:"d/m/Y" }}
+        {% else %}
+          Non définie
+        {% endif %}
       </p>
 
       <a href="{% url 'stock:product_update' product.pk %}" class="btn btn-primary">Modifier</a>

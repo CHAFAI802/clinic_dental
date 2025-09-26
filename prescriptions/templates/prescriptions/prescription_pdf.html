@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="header">
+  <div>
+    <img src="{% static '/img/mountazeh.png' %}" alt="Logo" class="logo">
+  </div>
+  <div class="cabinet-info">
+    <strong>Cabinet Médical</strong><br>
+    Dr {{ prescription.appointment.medecin.first_name }} {{ prescription.appointment.medecin.last_name }}<br>
+    {{ prescription.appointment.medecin.email }}<br>
+    Tél : 00 00 00 00
+  </div>
+</div>
+
+<h1>Ordonnance Médicale</h1>
+
+<!-- Infos patient -->
+<div class="info-block">
+  <p><span class="label">Patient :</span> {{ prescription.appointment.patient }}</p>
+  <p><span class="label">Date :</span> {{ prescription.appointment.date|date:"d/m/Y" }}</p>
+</div>
+
+<!-- Contenu de l'ordonnance -->
+<div class="prescription-content">
+  {{ prescription.text|linebreaks }}
+</div>
+
+<!-- Pied de page avec signature -->
+<div class="footer">
+  <div>
+    <span class="label">Fait à :</span> _____________<br>
+    <span class="label">Le :</span> {{ prescription.appointment.date|date:"d/m/Y" }}
+  </div>
+  <div class="signature">
+    Signature et cachet du médecin
+  </div>
+</div>
+{% endblock %}

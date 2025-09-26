@@ -18,21 +18,25 @@ class Appointment(models.Model):
     patient = models.ForeignKey(
         Patient,
         on_delete=models.CASCADE,
-        related_name="appointments"
+        related_name="appointments",
+        verbose_name="Patient"
     )
     medecin = models.ForeignKey(
         CustomUser,
         on_delete=models.CASCADE,
-        limit_choices_to={"role": "medecin"}
+        limit_choices_to={"role": "medecin"},
+        related_name="appointments_medecin",
+        verbose_name="Médecin"
     )
-    date = models.DateField()
-    time = models.TimeField()
-    reason = models.TextField(blank=True, null=True)
-    done = models.BooleanField(default=False)
+    date = models.DateField("Date du rendez-vous")
+    time = models.TimeField("Heure du rendez-vous")
+    reason = models.TextField("Motif", blank=True, null=True)
+    done = models.BooleanField(default=False, verbose_name="Rendez-vous effectué")
     status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,
-        default=STATUS_SCHEDULED
+        default=STATUS_SCHEDULED,
+        verbose_name="Statut"
     )
     created_at = models.DateTimeField(auto_now_add=True)
 

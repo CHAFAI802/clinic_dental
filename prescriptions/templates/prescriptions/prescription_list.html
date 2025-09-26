@@ -25,6 +25,10 @@
           <td>
             <a class="btn btn-primary" href="{% url 'prescriptions:prescription_create' prescription.pk  %}">➕ Nouvelle ordonnance</a>
           </td>
+           <td>
+            <a href="{% url 'prescriptions:prescription_pdf' prescription.pk %}" class="btn btn-success">📄 Imprimer / Télécharger PDF</a>
+
+          </td>
           <td>
             <a class="btn btn-sm btn-outline-danger" href="{% url 'prescriptions:prescription_delete' prescription.pk %}"> Supprimer l'ordonnance </a>
           </td>

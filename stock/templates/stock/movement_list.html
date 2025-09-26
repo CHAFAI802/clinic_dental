@@ -7,6 +7,25 @@
     <a href="{% url 'stock:product_list' %}" class="btn btn-success">liste Des Produits</a>
     <a href="{% url 'stock:export_xlsx' %}" class="btn btn-primary">📥 Export Excel</a>
   </div>
+  <form method="get" class="form-inline mb-3">
+  <select name="product" class="form-control mr-2">
+    <option value="">— Produit —</option>
+    {% for p in all_products %}
+      <option value="{{ p.id }}" {% if selected_product == p.id|stringformat:"s" %}selected{% endif %}>
+        {{ p.name }}
+      </option>
+    {% endfor %}
+  </select>
+
+  <select name="movement_type" class="form-control mr-2">
+    <option value="">— Type —</option>
+    <option value="IN" {% if selected_movement_type == 'IN' %}selected{% endif %}>Entrée</option>
+    <option value="OUT" {% if selected_movement_type == 'OUT' %}selected{% endif %}>Sortie</option>
+  </select>
+
+  <button type="submit" class="btn btn-primary">Filtrer</button>
+  <a href="{% url 'stock:movement_list' %}" class="btn btn-secondary ml-2">Réinitialiser</a>
+</form>
 
   <table class="table table-striped">
     <thead>

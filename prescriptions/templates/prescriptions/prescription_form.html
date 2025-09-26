@@ -1,14 +1,77 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2>{% if form.instance.pk %}Modifier{% else %}Nouvelle{% endif %} ordonnance</h2>
+<div class="container mt-4">
+  <h2>Nouvelle ordonnance</h2>
 
-<form method="post">
-  {% csrf_token %}
-  {{ form.as_p }}
-  <button type="submit" class="btn btn-success">
-    {% if form.instance.pk %}Mettre à jour{% else %}Enregistrer{% endif %}
-  </button>
-  <a href="{% url 'prescriptions:prescription_list' %}" class="btn btn-secondary">Retour</a>
-</form>
+  <form method="post">
+    {% csrf_token %}
+    <!-- Formulaire Prescription principal -->
+    <div class="mb-3">
+      {{ form.appointment.label_tag }}
+      {{ form.appointment }}
+      {% if form.appointment.errors %}
+        <div class="text-danger">{{ form.appointment.errors }}</div>
+      {% endif %}
+    </div>
+
+    <div class="mb-3">
+      {{ form.text.label_tag }}
+      {{ form.text }}
+      {% if form.text.errors %}
+        <div class="text-danger">{{ form.text.errors }}</div>
+      {% endif %}
+    </div>
+
+    <!-- Gestion des médicaments -->
+    <h4 class="mt-4">Médicaments</h4>
+    {{ formset.management_form }}
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th>Médicament</th>
+          <th>Posologie</th>
+          <th>Quantité</th>
+          <th>Unité</th>
+          <th>Supprimer</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for subform in formset %}
+        <tr>
+          <td>
+            {{ subform.medicament }}
+            {% if subform.medicament.errors %}
+              <div class="text-danger">{{ subform.medicament.errors }}</div>
+            {% endif %}
+          </td>
+          <td>
+            {{ subform.posologie }}
+            {% if subform.posologie.errors %}
+              <div class="text-danger">{{ subform.posologie.errors }}</div>
+            {% endif %}
+          </td>
+          <td>
+            {{ subform.quantite }}
+            {% if subform.quantite.errors %}
+              <div class="text-danger">{{ subform.quantite.errors }}</div>
+            {% endif %}
+          </td>
+          <td>
+            {{ subform.unite }}
+            {% if subform.unite.errors %}
+              <div class="text-danger">{{ subform.unite.errors }}</div>
+            {% endif %}
+          </td>
+          <td>
+            {% if subform.DELETE %}{{ subform.DELETE }}{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <button type="submit" class="btn btn-primary">Enregistrer</button>
+  </form>
+</div>
 {% endblock %}

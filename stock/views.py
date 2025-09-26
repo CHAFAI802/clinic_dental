@@ -24,16 +24,33 @@ class ProductListView(AdminRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+
         stock_colors = {}
+        stock_variations = {}
+
         for product in context['products']:
-            if product.current_stock > 50:
-                stock_colors[product.id] = 'table-success'
-            elif product.current_stock < 20:
-                stock_colors[product.id] = 'table-danger'
+            last_stock = product.last_stock or 0
+            current_stock = product.current_stock or 0
+
+            if last_stock == 0:
+                variation = 0
             else:
+                variation = abs(current_stock - last_stock) / last_stock * 100
+
+            stock_variations[product.id] = variation
+
+            if variation > 50:
+                stock_colors[product.id] = 'table-danger'
+            elif variation > 20:
                 stock_colors[product.id] = 'table-warning'
+            else:
+                stock_colors[product.id] = 'table-success'
+
         context['stock_colors'] = stock_colors
+        context['stock_variations'] = stock_variations
         return context
+
+
 
 class ProductDetailView(AdminRequiredMixin, DetailView):
     model = Product
@@ -43,6 +60,8 @@ class ProductDetailView(AdminRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         product = self.object
+
+        # Couleur selon stock actuel
         if product.current_stock > 50:
             context['stock_color'] = 'table-success'
         elif product.current_stock < 20:
@@ -50,30 +69,43 @@ class ProductDetailView(AdminRequiredMixin, DetailView):
         else:
             context['stock_color'] = 'table-warning'
 
+        # Calcul variation
+        last_stock = getattr(product, 'last_stock', None) or 0
+        current_stock = product.current_stock or 0
+        if last_stock == 0:
+            variation = 0
+        else:
+            variation = abs(current_stock - last_stock) / last_stock * 100
+        context['stock_variation'] = variation
+
+        # Alertes expiration
         today = datetime.today().date()
 
         if product.expiration_date and product.expiration_date < today:
-            # produit déjà périmé
             context['alert'] = True
             context['alert_message'] = (
                 f"❌ Le produit '{product.name}' est déjà périmé depuis le "
                 f"{product.expiration_date.strftime('%d/%m/%Y')} – il faut s’en débarrasser."
             )
-
         elif product.expiration_date and (product.expiration_date - today).days <= 15:
-            # produit proche de la péremption
             context['alert'] = True
             context['alert_message'] = (
                 f"⚠️ Attention : le produit '{product.name}' approche de sa date de péremption "
                 f"({product.expiration_date.strftime('%d/%m/%Y')})."
             )
-
         else:
-            # produit OK
             context['alert'] = False
             context['alert_message'] = ''
 
+        # Alerte variation importante
+        if variation > 50:
+            context['alert'] = True
+            context['alert_message'] += (
+                f"<br>⚠️ Variation importante du stock : {variation:.1f}% par rapport au précédent mouvement."
+            )
+
         return context
+
 
 class ProductCreateView(AdminRequiredMixin, CreateView):
     model = Product
@@ -100,6 +132,26 @@ class MovementListView(AdminRequiredMixin, ListView):
     context_object_name = 'movements'
     paginate_by = 15
     ordering = ['-date']
+
+    def get_queryset(self):
+        qs = super().get_queryset().select_related('product')
+        product_id = self.request.GET.get('product')
+        movement_type = self.request.GET.get('movement_type')
+
+        if product_id:
+            qs = qs.filter(product_id=product_id)
+        if movement_type:
+            qs = qs.filter(movement_type=movement_type)
+
+        return qs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['all_products'] = Product.objects.all()
+        # pour conserver les valeurs choisies dans le formulaire
+        context['selected_product'] = self.request.GET.get('product', '')
+        context['selected_movement_type'] = self.request.GET.get('movement_type', '')
+        return context
 
 class MovementCreateView(AdminRequiredMixin, CreateView):
     model = Movement

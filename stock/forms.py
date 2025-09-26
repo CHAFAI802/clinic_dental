@@ -1,6 +1,6 @@
 # stock/forms.py
 from django import forms
-from .models import Product, Movement
+from .models import Product, Movement,Category
 from datetime import date
 
 class ProductForm(forms.ModelForm):
