@@ -16,6 +16,6 @@ urlpatterns = [
     path('movements/<int:pk>/edit/', MovementUpdateView.as_view(), name='movement_update'),
     path('movements/<int:pk>/delete/', MovementDeleteView.as_view(), name='movement_delete'),
     path('movements/<int:pk>/', MovementDetailView.as_view(), name='movement_detail'),
-
+    path("alerts/", alerts_view, name="alerts_list"),
     path('export/', MovementExportXLSXView.as_view(), name='export_xlsx'),
 ]

@@ -2,6 +2,11 @@
 {% load static %}
 
 {% block content %}
+<p>
+  Pas encore activé ? 
+  <a href="{% url 'accounts:resend_activation' %}">Renvoyer l'email d'activation</a>
+</p>
+
 <div class="container d-flex justify-content-center align-items-center" style="min-height: 100vh;">
   <div class="card shadow-lg p-4" style="width: 400px;">
     <h2 class="text-center mb-4">Créer un compte</h2>

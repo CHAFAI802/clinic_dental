@@ -1,7 +1,10 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.core.exceptions import ValidationError
+from axes.handlers.proxy import AxesProxyHandler
+from axes.utils import reset_request
 from .models import CustomUser
+
 
 
 class CustomUserCreationForm(UserCreationForm):
@@ -106,9 +109,18 @@ class CustomAuthenticationForm(AuthenticationForm):
     )
 
     error_messages = {
-        'invalid_login': "Email ou mot de passe incorrect.",
-        'inactive': "Ce compte est inactif.",
+        'invalid_login': ("Email ou mot de passe incorrect."),
+        'inactive': ("Ce compte est inactif."),
+        'locked': ("Votre compte est temporairement bloqué après 5 tentatives échouées. "
+                    "Veuillez réessayer dans 5 minutes."),
     }
+
+    def confirm_login_allowed(self, user):
+        request = self.request
+        credentials = {"username": self.cleaned_data.get("email")}
+        if AxesProxyHandler.is_locked(request, credentials):
+            raise ValidationError(self.error_messages['locked'], code='locked')
+        super().confirm_login_allowed(user)
 
 
 class PasswordResetRequestForm(forms.Form):

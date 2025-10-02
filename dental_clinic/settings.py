@@ -88,20 +88,22 @@ LOGOUT_REDIRECT_URL = "accounts:home"
 LOGIN_URL = "accounts:login"
 
 AUTHENTICATION_BACKENDS = [
-    'axes.backends.AxesBackend',   # backend correct pour django-axes
+    'axes.backends.AxesBackend',   
     'django.contrib.auth.backends.ModelBackend',
 ]
 
 # Paramètres Axes
 AXES_FAILURE_LIMIT = 5
 AXES_COOLOFF_TIME = timedelta(minutes=5)
-AXES_LOCKOUT_PARAMETERS = ['username', 'ip_address']
+AXES_LOCKOUT_PARAMETERS = ['username','ip_address']
+AXES_USERNAME_FORM_FIELD = 'email'
 AXES_RESET_ON_SUCCESS = True
 AXES_LOCKOUT_TEMPLATE = 'accounts/account_locked.html'
 AXES_LOCKOUT_URL = None
 AXES_VERBOSE = True
 AXES_USERNAME_FORM_FIELD = 'email'
 AXES_ENABLE_ADMIN = True
+AXES_ENABLED = True
 AXES_ENABLE_ACCESS_FAILURE_LOG = True
 AXES_ONLY_ADMIN_SITE = False
 

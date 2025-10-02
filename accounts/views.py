@@ -49,7 +49,7 @@ def register(request):
             send_mail(
                 subject,
                 message,
-                settings.DEFAULT_FROM_EMAIL,  # expéditeur
+                settings.DEFAULT_FROM_EMAIL,  
                 [user.email],
                 fail_silently=False,
             )
@@ -88,7 +88,7 @@ def activate(request, uidb64, token):
     messages.error(request, "Lien d’activation invalide ou expiré.")
     return redirect("accounts:login")
 
-from django.contrib.auth.forms import AuthenticationForm
+
 
 def resend_activation(request):
     if request.method == "POST":

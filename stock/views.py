@@ -11,8 +11,11 @@ from django.views import View
 from openpyxl import Workbook
 from openpyxl.styles import PatternFill, Font, Alignment, Border, Side
 from openpyxl.comments import Comment
-from datetime import datetime
+from datetime import datetime,timedelta,date
 from .signals import apply_movement
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.shortcuts import render
+
 
 # ---- Product Views ----
 
@@ -300,3 +303,29 @@ class MovementExportXLSXView(AdminRequiredMixin, View):
         response['Content-Disposition'] = 'attachment; filename="mouvements.xlsx"'
         wb.save(response)
         return response
+
+
+def is_admin(user):
+    return user.is_authenticated and user.role == "admin"
+
+
+@login_required
+@user_passes_test(is_admin)
+def alerts_view(request):
+    seuil_stock = 50
+    seuil_jours = 15
+    today = date.today()
+
+    produits = Product.objects.all()
+
+    produits_stock_faible = [p for p in produits if p.current_stock < seuil_stock]
+    produits_peremption_proche = [
+        p for p in produits
+        if p.expiration_date and p.expiration_date <= today + timedelta(days=seuil_jours)
+    ]
+
+    context = {
+        "produits_stock_faible": produits_stock_faible,
+        "produits_peremption_proche": produits_peremption_proche,
+    }
+    return render(request, "stock/alerts_list.html", context)

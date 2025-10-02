@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container my-4">
+  <h2>Alertes Produits</h2>
+
+  <h4 class="mt-3">Stock faible</h4>
+  {% if produits_stock_faible %}
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Nom</th>
+          <th>Stock actuel</th>
+          <th>Détails</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for produit in produits_stock_faible %}
+          <tr>
+            <td>{{ produit.name }}</td>
+            <td>{{ produit.current_stock }}</td>
+            <td><a href="{% url 'stock:product_detail' produit.pk %}" class="btn btn-sm btn-info">Voir</a></td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>Aucun produit en stock faible.</p>
+  {% endif %}
+
+  <h4 class="mt-4">Péremption proche</h4>
+  {% if produits_peremption_proche %}
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Nom</th>
+          <th>Date de péremption</th>
+          <th>Détails</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for produit in produits_peremption_proche %}
+          <tr>
+            <td>{{ produit.name }}</td>
+            <td>{{ produit.expiration_date }}</td>
+            <td><a href="{% url 'stock:product_detail' produit.pk %}" class="btn btn-sm btn-info">Voir</a></td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>Aucun produit proche de la péremption.</p>
+  {% endif %}
+</div>
+{% endblock %}
