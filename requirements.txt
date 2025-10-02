@@ -10,8 +10,9 @@ WeasyPrint==62.3
 # Gestion des variables d’environnement
 python-decouple==3.8
 
-# Sécurité (hash mots de passe renforcé)
+# Sécurité (hash mots de passe renforcé , verification email pour inscription )
 bcrypt==4.1.3
+django-axes==6.1.1
 
 # Outils utiles
 Pillow==10.3.0          # gestion d’images (photos patients, logos factures)

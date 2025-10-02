@@ -8,13 +8,16 @@ from django.utils.decorators import method_decorator
 from django.views import View
 from django.contrib.auth.mixins import LoginRequiredMixin
 import io
-from django.http import FileResponse, Http404
-from django.shortcuts import get_object_or_404
+from django.http import FileResponse, Http404,HttpResponse
 from django.contrib.auth.decorators import login_required
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
-from .models import Billing  # on utilise ton modèle Billing
+from .models import Billing  
+import csv
+from django.db.models import Q , Sum
 
+
+# billing/views.py
 class BillingListView(LoginRequiredMixin, ListView):
     model = Billing
     template_name = 'billing/billing_list.html'
@@ -22,11 +25,67 @@ class BillingListView(LoginRequiredMixin, ListView):
     paginate_by = 10
 
     def get_queryset(self):
-        # Filtrer les factures liées aux rendez-vous du médecin connecté
-        return Billing.objects.filter(
+        qs = Billing.objects.filter(
             appointment__patient__medecin=self.request.user
         ).order_by("-issued_at")
-    
+
+        # récupération des filtres GET
+        nom_patient = self.request.GET.get("q", "").strip()
+        date_facture = self.request.GET.get("date", "").strip()
+        paid = self.request.GET.get("paid", "").strip()
+
+        if nom_patient:
+            qs = qs.filter(appointment__patient__last_name__icontains=nom_patient)
+
+        if date_facture:
+            # format YYYY-MM-DD dans l’input type="date"
+            qs = qs.filter(issued_at__date=date_facture)
+
+        if paid in ["0", "1"]:
+            qs = qs.filter(paid=bool(int(paid)))
+
+        return qs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # renvoyer les valeurs saisies pour les garder dans le formulaire
+        context["q"] = self.request.GET.get("q", "")
+        context["date"] = self.request.GET.get("date", "")
+        context["paid"] = self.request.GET.get("paid", "")
+        return context
+
+# export CSV séparé (même filtres)
+class BillingExportCSVView(LoginRequiredMixin, View):
+    def get(self, request, *args, **kwargs):
+        # on reprend la logique de get_queryset
+        qs = Billing.objects.filter(
+            appointment__patient__medecin=self.request.user
+        ).order_by("-issued_at")
+
+        nom_patient = request.GET.get("q", "").strip()
+        date_facture = request.GET.get("date", "").strip()
+        paid = request.GET.get("paid", "").strip()
+
+        if nom_patient:
+            qs = qs.filter(appointment__patient__last_name__icontains=nom_patient)
+        if date_facture:
+            qs = qs.filter(issued_at__date=date_facture)
+        if paid in ["0", "1"]:
+            qs = qs.filter(paid=bool(int(paid)))
+
+        response = HttpResponse(content_type="text/csv")
+        response["Content-Disposition"] = 'attachment; filename="factures.csv"'
+        writer = csv.writer(response)
+        writer.writerow(["ID", "Patient", "Montant", "Payée", "Date émission"])
+        for b in qs:
+            writer.writerow([
+                b.id,
+                str(b.appointment.patient),
+                b.amount,
+                "Oui" if b.paid else "Non",
+                b.issued_at.strftime("%d/%m/%Y"),
+            ])
+        return response   
 
 class BillingDetailView(LoginRequiredMixin, DetailView):
     model = Billing

@@ -2,6 +2,7 @@
 from django.db import models
 from django.utils import timezone
 from appointments.models import Appointment  
+from django.core.exceptions import ValidationError
 
 class Prescription(models.Model):
     appointment = models.ForeignKey(
@@ -41,6 +42,12 @@ class PrescriptionItem(models.Model):
         help_text="Ex: boîte, flacon, injection, suppositoire…"
     )
 
+    def clean(self):
+        if self.quantite <= 0:
+            raise ValidationError("La quantité doit être supérieure à 0")
+        if not self.medicament.strip():
+            raise ValidationError("Le nom du médicament est requis")
+        
     class Meta:
         verbose_name = "Médicament prescrit"
         verbose_name_plural = "Médicaments prescrits"

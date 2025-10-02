@@ -15,7 +15,7 @@
       <p><strong>Catégorie :</strong> {{ product.category }}</p>
       <p><strong>Stock initial :</strong> {{ product.quantity }}</p>
       <p><strong>Stock actuel :</strong> {{ product.current_stock }}</p>
-      <p><strong>Variation depuis dernier mouvement :</strong>
+      <p><strong>Variation depuis dernier mouvement par rapport au stock initial  :</strong>
         {{ stock_variation|floatformat:1 }}%</p>
       <p><strong>Description :</strong> {{ product.description|linebreaks }}</p>
       <p><strong>Date d'expiration :</strong> 

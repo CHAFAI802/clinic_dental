@@ -1,0 +1,7 @@
+Bonjour {{ user.first_name }},
+
+Merci de vous être inscrit. Cliquez sur le lien ci-dessous pour activer votre compte :
+
+http://{{ domain }}{% url 'accounts:activate' uidb64=uid token=token %}
+
+Si vous n’avez pas fait cette demande, ignorez cet email.

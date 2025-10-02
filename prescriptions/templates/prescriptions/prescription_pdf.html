@@ -2,39 +2,156 @@
 {% load static %}
 
 {% block content %}
-<div class="header">
-  <div>
-    <img src="{% static '/img/mountazeh.png' %}" alt="Logo" class="logo">
-  </div>
-  <div class="cabinet-info">
-    <strong>Cabinet Médical</strong><br>
-    Dr {{ prescription.appointment.medecin.first_name }} {{ prescription.appointment.medecin.last_name }}<br>
-    {{ prescription.appointment.medecin.email }}<br>
-    Tél : 00 00 00 00
-  </div>
+<div class="prescription-container">
+    <div class="prescription-header">
+        <h1>Ordonnance Médicale</h1>
+        <div class="action-buttons">
+            <a href="{% url 'prescriptions:prescription_pdf' prescription.pk %}" 
+               class="btn btn-primary" target="_blank">
+                <i class="fas fa-file-pdf"></i> Télécharger PDF
+            </a>
+            <a href="{% url 'prescriptions:prescription_update' prescription.pk %}" 
+               class="btn btn-secondary">
+                <i class="fas fa-edit"></i> Modifier
+            </a>
+            <a href="{% url 'prescriptions:patient_all_prescriptions' prescription.appointment.patient.pk %}" 
+               class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Retour
+            </a>
+        </div>
+    </div>
+
+    <div class="info-block">
+        <h3>Informations Patient</h3>
+        <p><strong>Patient :</strong> {{ prescription.appointment.patient.get_full_name }}</p>
+        <p><strong>Date de consultation :</strong> {{ prescription.appointment.date|date:"d/m/Y" }}</p>
+        <p><strong>Date de prescription :</strong> {{ prescription.created_at|date:"d/m/Y à H:i" }}</p>
+    </div>
+
+    {% if prescription.text %}
+    <div class="info-block">
+        <h3>Notes</h3>
+        <p>{{ prescription.text|linebreaks }}</p>
+    </div>
+    {% endif %}
+
+    <div class="medications-block">
+        <h3>Médicaments prescrits</h3>
+        {% if prescription.items.all %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Médicament</th>
+                    <th>Posologie</th>
+                    <th>Quantité</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in prescription.items.all %}
+                <tr>
+                    <td><strong>{{ item.medicament }}</strong></td>
+                    <td>{{ item.posologie }}</td>
+                    <td>{{ item.quantite }} {{ item.unite }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="text-muted">Aucun médicament prescrit</p>
+        {% endif %}
+    </div>
+
+    <div class="footer">
+        <div class="footer-left">
+            <p><strong>Fait à :</strong> _____________</p>
+            <p><strong>Le :</strong> {{ prescription.appointment.date|date:"d/m/Y" }}</p>
+        </div>
+        <div class="signature">
+            <p>Signature et cachet du médecin</p>
+            <div class="signature-box"></div>
+        </div>
+    </div>
 </div>
 
-<h1>Ordonnance Médicale</h1>
+<style>
+.prescription-container {
+    max-width: 900px;
+    margin: 20px auto;
+    background: white;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
 
-<!-- Infos patient -->
-<div class="info-block">
-  <p><span class="label">Patient :</span> {{ prescription.appointment.patient }}</p>
-  <p><span class="label">Date :</span> {{ prescription.appointment.date|date:"d/m/Y" }}</p>
-</div>
+.prescription-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #007bff;
+}
 
-<!-- Contenu de l'ordonnance -->
-<div class="prescription-content">
-  {{ prescription.text|linebreaks }}
-</div>
+.action-buttons {
+    display: flex;
+    gap: 10px;
+}
 
-<!-- Pied de page avec signature -->
-<div class="footer">
-  <div>
-    <span class="label">Fait à :</span> _____________<br>
-    <span class="label">Le :</span> {{ prescription.appointment.date|date:"d/m/Y" }}
-  </div>
-  <div class="signature">
-    Signature et cachet du médecin
-  </div>
-</div>
+.btn {
+    padding: 8px 16px;
+    border-radius: 4px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.btn-primary {
+    background-color: #007bff;
+    color: white;
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+    color: white;
+}
+
+.info-block, .medications-block {
+    margin-bottom: 30px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 6px;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+.table th, .table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.table thead {
+    background-color: #e9ecef;
+}
+
+.footer {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid #dee2e6;
+}
+
+.signature-box {
+    width: 200px;
+    height: 80px;
+    border: 1px dashed #6c757d;
+    margin-top: 10px;
+}
+</style>
 {% endblock %}

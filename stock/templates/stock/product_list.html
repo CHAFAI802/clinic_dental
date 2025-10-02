@@ -6,8 +6,9 @@
   <h2>📦 Liste des produits</h2>
   <div class="mb-3">
     <a href="{% url 'stock:product_create' %}" class="btn btn-primary">➕ Nouveau produit</a>
-    <a href="{% url 'stock:export_xlsx' %}" class="btn btn-success">📥 Export Excel</a>
     <a href="{% url 'stock:movement_list' %}" class="btn btn-primary">➕ liste des mouvements</a>
+    <a href="{% url 'stock:movement_create' %}" class="btn btn-success">➕ Nouveau mouvement</a>
+    <a href="{% url 'stock:export_xlsx' %}" class="btn btn-success">📥 Export Excel</a>
   </div>
 
   <table class="table table-striped">
@@ -17,7 +18,7 @@
         <th>Catégorie</th>
         <th>Stock initial</th>
         <th>Stock actuel</th>
-        <th>Variation</th>   {# ✅ colonne ajoutée #}
+        <th>Variation</th>   
         <th>Actions</th>
       </tr>
     </thead>
@@ -28,7 +29,16 @@
         <td>{{ product.category }}</td>
         <td>{{ product.quantity }}</td>
         <td>{{ product.current_stock }}</td>
-        <td>{{ stock_variations|dict_get:product.id|floatformat:1 }}%</td> {# ✅ affichage % #}
+        <td class="{{ stock_color }}">
+          {{ stock_variation|floatformat:1 }} %
+          {% if variation_icon == 'up' %}
+            <i class="bi bi-arrow-up text-success">{{variation_icon}}</i>
+          {% elif variation_icon == 'down' %}
+            <i class="bi bi-arrow-down text-danger">{{variation_icon}}</i>
+          {% else %}
+            <i class="bi bi-dash text-secondary">{{variation_icon}}</i>
+          {% endif %}
+        </td>
         <td>
           <a href="{% url 'stock:product_update' product.pk %}" class="btn btn-sm btn-primary">Modifier</a>
           <a href="{% url 'stock:product_delete' product.pk %}" class="btn btn-sm btn-danger">Supprimer</a>

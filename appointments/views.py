@@ -8,7 +8,7 @@ from django.views.generic import ListView, CreateView, UpdateView, DetailView, D
 from django.views import View
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
-
+from django.core.exceptions import ValidationError
 from .models import Appointment
 from .forms import AppointmentForm
 from patients.models import Patient
@@ -32,6 +32,11 @@ class AppointmentCreateView(LoginRequiredMixin, CreateView):
 
     def form_valid(self, form):
         form.instance.medecin = self.request.user
+        try:
+            form.instance.full_clean()  # ✅ validation du modèle
+        except ValidationError as e:
+            form.add_error(None, e)  # ✅ attache les erreurs au formulaire
+            return self.form_invalid(form)
         return super().form_valid(form)
 
 class AppointmentDetailView(LoginRequiredMixin, DetailView):

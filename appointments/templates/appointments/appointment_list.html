@@ -1,6 +1,15 @@
 {% extends "base.html" %}
 {% load static %}
 
+<a class="navbar-brand" href="/">
+  {% if clinic_info.logo %}
+    <img src="{{ clinic_info.logo.url }}" alt="Logo du cabinet" style="height:40px;">
+  {% else %}
+    <img src="{% static 'img/default_logo.png' %}" alt="Logo par défaut" style="height:40px;">
+  {% endif %}
+</a>
+
+
 {% block content %}
 <div class="container my-4">
   <div class="d-flex justify-content-between align-items-center mb-3">

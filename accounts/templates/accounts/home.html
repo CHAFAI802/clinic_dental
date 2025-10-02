@@ -1,5 +1,48 @@
-{% include "navbar.html" %} 
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Accueil - Cabinet Dentaire{% endblock %}
 
 {% block content %}
+<p>
+  Pas encore activé ? 
+  <a href="{% url 'accounts:resend_activation' %}">Renvoyer l'email d'activation</a>
+</p>
 
+<div class="container">
+  <div class="text-center mt-5">
+    <h1 class="display-4 mb-4">Bienvenue au Cabinet Dentaire <br>
+    EL Mountazh Clinique </h1>
+    
+    {% if user.is_authenticated %}
+      <div class="alert alert-success">
+        <p class="lead mb-0">
+          <i class="fas fa-user-circle"></i> 
+          Connecté en tant que <strong>{{ user.get_full_name }}</strong> 
+          ({{ user.get_role_display }})
+        </p>
+      </div>
+      <div class="mt-4">
+        <a href="{% url 'core:dashboard' %}" class="btn btn-primary btn-lg">
+          <i class="fas fa-tachometer-alt"></i> Accéder au tableau de bord
+        </a>
+        <a href="{% url 'accounts:logout' %}" class="btn btn-outline-danger btn-lg ms-2">
+          <i class="fas fa-sign-out-alt"></i> Déconnexion
+        </a>
+      </div>
+    {% else %}
+      <p class="lead text-muted mb-4">
+        Connectez-vous pour accéder à votre espace professionnel
+      </p>
+      <div class="d-flex justify-content-center gap-3">
+        <a href="{% url 'accounts:login' %}" class="btn btn-primary btn-lg">
+          <i class="fas fa-sign-in-alt"></i> Connexion
+        </a>
+        <a href="{% url 'accounts:register' %}" class="btn btn-outline-secondary btn-lg">
+          <i class="fas fa-user-plus"></i> Inscription
+        </a>
+      </div>
+    {% endif %}
+  </div>
+</div>
 {% endblock %}

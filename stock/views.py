@@ -12,7 +12,7 @@ from openpyxl import Workbook
 from openpyxl.styles import PatternFill, Font, Alignment, Border, Side
 from openpyxl.comments import Comment
 from datetime import datetime
-
+from .signals import apply_movement
 
 # ---- Product Views ----
 
@@ -31,20 +31,20 @@ class ProductListView(AdminRequiredMixin, ListView):
         for product in context['products']:
             last_stock = product.last_stock or 0
             current_stock = product.current_stock or 0
-
-            if last_stock == 0:
-                variation = 0
+            initial_stock = product.quantity
+            if initial_stock == current_stock:
+                variation = 100
             else:
-                variation = abs(current_stock - last_stock) / last_stock * 100
+                variation = current_stock  / initial_stock * 100
 
             stock_variations[product.id] = variation
 
             if variation > 50:
-                stock_colors[product.id] = 'table-danger'
+                stock_colors[product.id] = 'table-success'
             elif variation > 20:
                 stock_colors[product.id] = 'table-warning'
             else:
-                stock_colors[product.id] = 'table-success'
+                stock_colors[product.id] = 'table-danger'
 
         context['stock_colors'] = stock_colors
         context['stock_variations'] = stock_variations
@@ -61,51 +61,71 @@ class ProductDetailView(AdminRequiredMixin, DetailView):
         context = super().get_context_data(**kwargs)
         product = self.object
 
-        # Couleur selon stock actuel
-        if product.current_stock > 50:
-            context['stock_color'] = 'table-success'
-        elif product.current_stock < 20:
-            context['stock_color'] = 'table-danger'
-        else:
-            context['stock_color'] = 'table-warning'
-
-        # Calcul variation
-        last_stock = getattr(product, 'last_stock', None) or 0
+        # --- Variation ---
+        initial_stock = product.quantity or 0
         current_stock = product.current_stock or 0
-        if last_stock == 0:
-            variation = 0
+        last_stock = product.last_stock or 0
+
+        if initial_stock == current_stock:
+            variation = 100
         else:
-            variation = abs(current_stock - last_stock) / last_stock * 100
+            variation = current_stock  / initial_stock * 100
+
         context['stock_variation'] = variation
 
-        # Alertes expiration
+        # --- Couleur du tableau ---
+        if variation < 20:
+            context['stock_color'] = 'table-danger'
+        elif variation < 50:
+            context['stock_color'] = 'table-warning'
+        else:
+            context['stock_color'] = 'table-success'
+
+        # --- Déterminer l’icône de flèche ---
+        if current_stock > initial_stock:
+            # flèche montante verte
+            context['variation_icon'] = 'up'
+        elif current_stock < initial_stock:
+            # flèche descendante rouge
+            context['variation_icon'] = 'down'
+        else:
+            context['variation_icon'] = 'equal'
+
+        # --- Alertes expiration ---
         today = datetime.today().date()
+        alert_messages = []
 
         if product.expiration_date and product.expiration_date < today:
             context['alert'] = True
-            context['alert_message'] = (
+            alert_messages.append(
                 f"❌ Le produit '{product.name}' est déjà périmé depuis le "
                 f"{product.expiration_date.strftime('%d/%m/%Y')} – il faut s’en débarrasser."
             )
         elif product.expiration_date and (product.expiration_date - today).days <= 15:
             context['alert'] = True
-            context['alert_message'] = (
+            alert_messages.append(
                 f"⚠️ Attention : le produit '{product.name}' approche de sa date de péremption "
                 f"({product.expiration_date.strftime('%d/%m/%Y')})."
             )
-        else:
-            context['alert'] = False
-            context['alert_message'] = ''
 
-        # Alerte variation importante
-        if variation > 50:
+        if variation < 20:
             context['alert'] = True
-            context['alert_message'] += (
-                f"<br>⚠️ Variation importante du stock : {variation:.1f}% par rapport au précédent mouvement."
+            alert_messages.append(
+                f"⚠️ Le stock est très bas ({variation:.1f}% du stock initial)."
+            )
+        elif variation < 50:
+            context['alert'] = True
+            alert_messages.append(
+                f"⚠️ Le stock est inférieur à 50 % du stock initial  ({variation:.1f}%)."
             )
 
-        return context
+        if not alert_messages:
+            context['alert'] = False
+            context['alert_message'] = ''
+        else:
+            context['alert_message'] = "<br>".join(alert_messages)
 
+        return context
 
 class ProductCreateView(AdminRequiredMixin, CreateView):
     model = Product
@@ -157,7 +177,13 @@ class MovementCreateView(AdminRequiredMixin, CreateView):
     model = Movement
     form_class = MovementForm
     template_name = 'stock/movement_form.html'
-    success_url = reverse_lazy('stock:movement_list')
+    success_url = reverse_lazy('stock:product_list') 
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        movement = self.object
+        apply_movement(movement.product, movement.movement_type, movement.movement_quantity)
+        return response
 
 class MovementUpdateView(AdminRequiredMixin, UpdateView):
     model = Movement
@@ -219,9 +245,9 @@ class MovementExportXLSXView(AdminRequiredMixin, View):
                 stock_par_produit[pid] = m.product.current_stock
 
             if m.movement_type == 'IN':
-                stock_par_produit[pid] -= m.quantity
+                stock_par_produit[pid] -= m.movement_quantity
             else:
-                stock_par_produit[pid] += m.quantity
+                stock_par_produit[pid] += m.movement_quantity
 
             stock_restant = stock_par_produit[pid]
 
@@ -237,7 +263,7 @@ class MovementExportXLSXView(AdminRequiredMixin, View):
                 m.date.strftime("%d/%m/%Y %H:%M"),
                 m.product.name,
                 'Entrée' if m.movement_type == 'IN' else 'Sortie',
-                m.quantity,
+                m.movement_quantity,
                 m.note or '',
                 stock_restant,
                 expiration.strftime("%d/%m/%Y") if expiration else ''

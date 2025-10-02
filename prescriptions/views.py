@@ -9,7 +9,7 @@ from django.views.generic import (
 from .forms import PrescriptionForm,PrescriptionItemFormSet,PrescriptionItem,PrescriptionItemForm,Prescription
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
-from .utils.pdf_prescription import draw_prescription
+from .utils.prescription_pdf import draw_prescription
 PrescriptionItemFormSet = inlineformset_factory(
     Prescription, PrescriptionItem, form=PrescriptionItemForm,
     extra=1, can_delete=True
@@ -126,13 +126,38 @@ class PatientPrescriptionUpdateView(LoginRequiredMixin, UpdateView):
     template_name = 'prescriptions/prescription_form.html'
 
     def get_queryset(self):
-        return Prescription.objects.filter(
-            appointment__patient__medecin=self.request.user
-        )
+        return (Prescription.objects
+            .filter(appointment__patient__medecin=self.request.user)
+            .select_related("appointment", "appointment__patient")
+            .prefetch_related("items")
+            .order_by("-appointment__date"))
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if self.request.POST:
+            context['formset'] = PrescriptionItemFormSet(
+                self.request.POST, 
+                instance=self.object
+            )
+        else:
+            context['formset'] = PrescriptionItemFormSet(instance=self.object)
+        return context
+
+    def form_valid(self, form):
+        context = self.get_context_data()
+        formset = context['formset']
+        
+        if formset.is_valid():
+            self.object = form.save()
+            formset.instance = self.object
+            formset.save()
+            return super().form_valid(form)
+        else:
+            return self.form_invalid(form)
 
     def get_success_url(self):
-        return reverse('prescriptions:patient_all_prescriptions', args=[self.object.appointment.patient.pk])
-
+        return reverse('prescriptions:patient_all_prescriptions', 
+                      args=[self.object.appointment.patient.pk])
 
 class PatientPrescriptionDeleteView(LoginRequiredMixin, DeleteView):
     model = Prescription

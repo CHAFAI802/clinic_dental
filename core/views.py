@@ -1,5 +1,5 @@
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render
+from django.shortcuts import render,redirect
 from patients.models import Patient 
 from appointments.models import Appointment
 from prescriptions.models import Prescription
@@ -7,7 +7,10 @@ from billing.models import Billing
 from stock.models import Product, Movement  # import stock
 from datetime import date, timedelta
 from datetime import date, timedelta
-
+from django.contrib.auth.decorators import user_passes_test
+from .forms import ClinicInfoForm
+from .models import ClinicInfo
+from django.contrib import messages
 
 @login_required
 def dashboard_view(request):
@@ -47,3 +50,29 @@ def dashboard_view(request):
         stats["alerts_count"] = len(produits_stock_faible) + len(produits_peremption_proche)
 
     return render(request, "core/dashboard.html", {"stats": stats})
+
+def is_admin(user):
+    return user.is_authenticated and user.role == "admin"
+
+
+@login_required
+def clinic_info_update(request):
+    # on prend le premier enregistrement (ou on le crée s’il n’existe pas)
+    clinic_info, created = ClinicInfo.objects.get_or_create(pk=1)
+
+    if request.user.role != 'admin':  # protection supplémentaire
+        messages.error(request, "Accès réservé à l’administrateur.")
+        return redirect('/')
+
+    if request.method == 'POST':
+        form = ClinicInfoForm(request.POST, request.FILES, instance=clinic_info)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Informations du cabinet mises à jour.")
+            return redirect('core:clinic_info_update')
+    else:
+        form = ClinicInfoForm(instance=clinic_info)
+
+    return render(request, 'core/clinic_info_form.html', {'form': form})
+
+

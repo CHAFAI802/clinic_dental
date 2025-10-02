@@ -2,8 +2,30 @@
 
 {% block content %}
 <h2>Liste des factures</h2>
-<a href="{% url 'billing:billing_add' %}" class="btn btn-success mb-3">Ajouter une facture</a>
 
+<a href="{% url 'billing:billing_add' %}" class="btn btn-success mb-3">Ajouter une facture</a>
+<a href="{% url 'billing:billing_export' %}?q={{q}}&date={{date}}&paid={{paid}}" class="btn btn-outline-secondary mb-3">Export CSV</a> 
+
+<!-- FORMULAIRE DE RECHERCHE -->
+<form method="get" class="row g-3 mb-4">
+  <div class="col-md-4">
+    <input type="text" name="q" value="{{ q }}" placeholder="Nom du patient"
+           class="form-control">
+  </div>
+  <div class="col-md-3">
+    <input type="date" name="date" value="{{ date }}" class="form-control">
+  </div>
+  <div class="col-md-3">
+    <select name="paid" class="form-select">
+      <option value="">Tous</option>
+      <option value="1" {% if paid == "1" %}selected{% endif %}>Payées</option>
+      <option value="0" {% if paid == "0" %}selected{% endif %}>Non payées</option>
+    </select>
+  </div>
+  <div class="col-md-2">
+    <button type="submit" class="btn btn-primary w-100">Filtrer</button>
+  </div>
+</form>
 <table class="table table-striped">
   <thead>
     <tr>
@@ -15,36 +37,7 @@
       <th>Actions</th>
     </tr>
   </thead>
-  <tbody>
-    {% for billing in billings %}
-    <tr>
-      <td>{{ billing.id }}</td>
-      <td>{{ billing.appointment.patient }} </td>
-      <td>{{ billing.amount }} €</td>
-      <td>{% if billing.paid %}Oui{% else %}Non{% endif %}</td>
-      <td>{{ billing.issued_at|date:"d/m/Y H:i" }}</td>
-      <td>
-        <a href="{% url 'billing:billing_edit' billing.pk %}" class="btn btn-sm btn-warning">Modifier</a>
-      </td>
-      <td>
-        <a href="{% url 'billing:billing_detail' billing.pk %}" class="btn btn-success mb-3">Detail de la facture </a>
-      </td>
-      <td>
-        <form method="post"
-                      action="{% url 'billing:billing_delete' billing.pk %}"
-                      class="d-inline-block"
-                      onsubmit="return confirm('Confirmer la suppression du rendez-vous de {{ appointment.patient }} ?');">
-                  {% csrf_token %}
-                  <button type="submit" class="btn btn-sm btn-outline-danger">Supprimer</button>
-                </form>
-      </td>
-    </tr>
-    {% empty %}
-    <tr>
-      <td colspan="6">Aucune facture trouvée.</td>
-    </tr>
-    {% endfor %}
-  </tbody>
+  
 </table>
 
 {% if is_paginated %}

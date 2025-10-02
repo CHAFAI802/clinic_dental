@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load hex_filters %}  
 {% block content %}
 <div class="container mt-4">
   <h1 class="mb-4">Tableau de bord</h1>
@@ -6,7 +7,8 @@
   <div class="row g-4">
     <!-- Patients -->
     <div class="col-md-3">
-      <div class="card text-center shadow-sm border-0" style="background:#e8f4fd;">
+      <div class="card text-center shadow-sm border-0"
+           style="background-color: rgba({{ clinic_info.primary_color|hex_to_rgb }},0.1);">
         <div class="card-body">
           <i class="bi bi-people display-5 text-primary"></i>
           <h5 class="card-title mt-2">Patients</h5>
@@ -18,19 +20,20 @@
 
     <!-- Rendez-vous -->
     <div class="col-md-3">
-      <div class="card text-center shadow-sm border-0" style="background:#fdf3e8;">
+      <div class="card text-center shadow-sm border-0"
+           style="background-color: rgba({{ clinic_info.secondary_color|hex_to_rgb }},0.1);">
         <div class="card-body">
-          <i class="bi bi-calendar-event display-5 text-warning"></i>
+          <i class="bi bi-calendar-event display-5 text-secondary"></i>
           <h5 class="card-title mt-2">Rendez-vous</h5>
           <p class="display-6 fw-bold">{{ stats.appointments }}</p>
-          <a href="{% url 'appointments:appointment_list' %}" class="btn btn-outline-warning btn-sm">Voir</a>
+          <a href="{% url 'appointments:appointment_list' %}" class="btn btn-outline-secondary btn-sm">Voir</a>
         </div>
       </div>
     </div>
 
-    <!-- Ordonnances -->
+    <!-- Prescriptions -->
     <div class="col-md-3">
-      <div class="card text-center shadow-sm border-0" style="background:#f0f9f0;">
+      <div class="card text-center shadow-sm border-0" style="background-color: rgba(40,167,69,0.1);">
         <div class="card-body">
           <i class="bi bi-file-medical display-5 text-success"></i>
           <h5 class="card-title mt-2">Prescriptions</h5>
@@ -42,7 +45,7 @@
 
     <!-- Factures -->
     <div class="col-md-3">
-      <div class="card text-center shadow-sm border-0" style="background:#fdf0f5;">
+      <div class="card text-center shadow-sm border-0" style="background-color: rgba(220,53,69,0.1);">
         <div class="card-body">
           <i class="bi bi-receipt display-5 text-danger"></i>
           <h5 class="card-title mt-2">Factures</h5>
@@ -53,16 +56,16 @@
     </div>
 
     {% if stats.products %}
-    <!-- Bloc Stock -->
-   <div class="col-md-3">
-    <div class="card text-center shadow-sm border-0" style="background:#eef6ff;">
-      <div class="card-body">
-        <i class="bi bi-box-seam display-5 text-info"></i>
+    <!-- Stock -->
+    <div class="col-md-3">
+      <div class="card text-center shadow-sm border-0" style="background-color: rgba(13,110,253,0.05);">
+        <div class="card-body">
+          <i class="bi bi-box-seam display-5 text-info"></i>
           <h5 class="card-title mt-2">
-           Produits
-           {% if stats.alerts_count > 0 %}
-            <button class="btn btn-warning position-relative mb-3"
-              type="button"
+            Produits
+            {% if stats.alerts_count > 0 %}
+              <button class="btn btn-warning position-relative mb-3"
+                type="button"
                 data-bs-toggle="offcanvas"
                 data-bs-target="#alertsOffcanvas"
                 aria-controls="alertsOffcanvas">
@@ -70,18 +73,19 @@
                 <span class="badge bg-danger position-absolute top-0 start-100 translate-middle">
                   {{ stats.alerts_count }}
                 </span>
-            </button>
-           {%endif%}
+              </button>
+            {% endif %}
           </h5>
-        <p class="display-6 fw-bold">{{ stats.products }}</p>
-        <a href="{% url 'stock:product_list' %}" class="btn btn-outline-info btn-sm">Voir</a>
+          <p class="display-6 fw-bold">{{ stats.products }}</p>
+          <a href="{% url 'stock:product_list' %}" class="btn btn-outline-info btn-sm">Voir</a>
+        </div>
       </div>
     </div>
-   </div>
-   {% endif %}
+    {% endif %}
 
   </div>
 </div>
+
 <!-- Offcanvas Alertes -->
 <div class="offcanvas offcanvas-end" tabindex="-1" id="alertsOffcanvas" aria-labelledby="alertsOffcanvasLabel">
   <div class="offcanvas-header">
@@ -97,7 +101,6 @@
           <span class="badge bg-secondary">{{ p.current_stock }}</span>
         </li>
       {% empty %}
-        
       {% endfor %}
     </ul>
 
@@ -109,12 +112,8 @@
           <span class="badge bg-danger">{{ p.expiration_date|date:"d/m/Y" }}</span>
         </li>
       {% empty %}
-        
       {% endfor %}
     </ul>
   </div>
 </div>
-
 {% endblock %}
-
-

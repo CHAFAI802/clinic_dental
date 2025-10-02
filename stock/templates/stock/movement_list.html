@@ -44,7 +44,7 @@
         <td>{{ m.date|date:"d/m/Y H:i" }}</td>
         <td>{{ m.product.name }}</td>
         <td>{{ m.get_movement_type_display }}</td>
-        <td>{{ m.quantity }}</td>
+        <td>{{ m.movement_quantity }}</td>
         <td>{{ m.note }}</td>
         <td>
           <a href="{% url 'stock:movement_update' m.pk %}" class="btn btn-sm btn-primary">Modifier</a>

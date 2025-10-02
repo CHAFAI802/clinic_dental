@@ -1,4 +1,7 @@
 from django.db import models
+from django.core.exceptions import ValidationError
+from django.utils import timezone
+from datetime import datetime, timedelta
 from patients.models import Patient
 from django.contrib.auth import get_user_model
 
@@ -47,3 +50,26 @@ class Appointment(models.Model):
 
     def __str__(self):
         return f"{self.patient} - {self.date} {self.time} ({self.get_status_display()})"
+
+    def clean(self):
+        """Validation métier : pas de date passée, pas de chevauchement < 15 min pour un médecin"""
+        dt_rdv = datetime.combine(self.date, self.time)
+
+        # 1. Pas de rendez-vous dans le passé
+        if dt_rdv < timezone.now():
+            raise ValidationError("La date et l'heure du rendez-vous ne peuvent pas être dans le passé.")
+
+        # 2. Vérifier les chevauchements pour le même médecin
+        conflicts = Appointment.objects.filter(
+            medecin=self.medecin,
+            date=self.date
+        )
+
+        if self.pk:
+            conflicts = conflicts.exclude(pk=self.pk)
+
+        for rdv in conflicts:
+            rdv_dt = datetime.combine(rdv.date, rdv.time)
+            delta = abs((rdv_dt - dt_rdv).total_seconds()) / 60  # différence en minutes
+            if delta < 15:
+                raise ValidationError("Un autre rendez-vous est déjà prévu dans les 15 minutes pour ce médecin.")
