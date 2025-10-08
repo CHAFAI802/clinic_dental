@@ -1,4 +1,5 @@
 from .models import ClinicInfo
+from core.utils import get_version
 
 def clinic_settings(request):
     """Injecte les informations du cabinet dans tous les templates."""
@@ -18,3 +19,6 @@ def clinic_settings(request):
         "clinic_info": clinic_info,
         "theme_mode": "dark" if dark_mode else "light",
     }
+
+def version_context(request):
+    return {"version": get_version()}
