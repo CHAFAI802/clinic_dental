@@ -2,6 +2,9 @@
 {% load static %}
 
 {% block footer %}
+  <div style="background-color: {{ environment_color }}; color: white; padding: 8px; text-align: center; font-size: 13px;">
+    Environnement : {{ environment_name }} — {{ project_version }}
+  </div>
   <div class="text-center text-muted" style="padding: 10px; font-size: 12px;">
     Cabinet Dentaire — {{ project_version }}
   </div>

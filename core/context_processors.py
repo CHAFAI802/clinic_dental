@@ -1,5 +1,6 @@
 from .models import ClinicInfo
 from core.utils import get_version
+from django.conf import settings
 
 def clinic_settings(request):
     """Injecte les informations du cabinet dans tous les templates."""
@@ -22,3 +23,17 @@ def clinic_settings(request):
 
 def version_context(request):
     return {"version": get_version()}
+
+
+def environment_context(request):
+    """
+    Indique dans quel environnement tourne le projet (dev / prod).
+    """
+    if settings.DEBUG:
+        env = "Développement"
+        color = "#0d6efd"  # bleu
+    else:
+        env = "Production"
+        color = "#198754"  # vert
+
+    return {"environment_name": env, "environment_color": color}
