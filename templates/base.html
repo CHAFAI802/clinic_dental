@@ -32,6 +32,11 @@
 
 </head>
 <body>
+{% if show_env_banner %}
+  <div style="background-color: {{ env_color }}; color: white; text-align: center; padding: 6px; font-size: 13px;">
+    Environnement : {{ env_name }} — {{ version }}
+  </div>
+{% endif %}
 
 <!-- NAVBAR -->
 <nav class="navbar navbar-expand-lg mb-3">

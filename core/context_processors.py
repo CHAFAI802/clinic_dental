@@ -25,15 +25,20 @@ def version_context(request):
     return {"version": get_version()}
 
 
-def environment_context(request):
+def environment_banner_context(request):
     """
-    Indique dans quel environnement tourne le projet (dev / prod).
+    Rend le bandeau d'environnement disponible sur le site public,
+    visible uniquement pour les administrateurs connectés.
     """
-    if settings.DEBUG:
-        env = "Développement"
-        color = "#0d6efd"  # bleu
-    else:
-        env = "Production"
-        color = "#198754"  # vert
+    if not request.user.is_authenticated or getattr(request.user, "role", "") != "admin":
+        return {}
 
-    return {"environment_name": env, "environment_color": color}
+    from django.conf import settings
+    env_name = "Développement" if settings.DEBUG else "Production"
+    env_color = "#0d6efd" if settings.DEBUG else "#198754"
+
+    return {
+        "show_env_banner": True,
+        "env_name": env_name,
+        "env_color": env_color,
+    }
