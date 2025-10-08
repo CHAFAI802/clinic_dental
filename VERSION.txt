@@ -1,0 +1,4 @@
+v1.3.0-billing-validation
+Release date: 2025-10-07
+Description: Version stable intégrant la validation complète avant facturation (Appointment–Prescription–Billing).
+Author: Chafai Mabrouk
