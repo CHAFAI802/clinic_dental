@@ -2,6 +2,8 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from .models import ClinicInfo
+from django.utils.safestring import mark_safe
+from core.utils import get_version
 
 @admin.register(ClinicInfo)
 class ClinicInfoAdmin(admin.ModelAdmin):
@@ -14,3 +16,10 @@ class ClinicInfoAdmin(admin.ModelAdmin):
             return format_html('<img src="{}" style="height:60px;" />', obj.logo.url)
         return "(Aucun logo)"
     logo_preview.short_description = "Aperçu du logo"
+
+@admin.site.each_context
+def add_version_to_admin_context(request):
+    """
+    Injecte la version actuelle du projet dans le contexte du site d'administration.
+    """
+    return {"project_version": get_version()}
