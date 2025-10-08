@@ -1,29 +1,119 @@
 {% extends "base.html" %}
+{% load static %}
+
 {% block content %}
-<div class="container d-flex justify-content-center align-items-center" style="min-height: 80vh;">
-  <div class="card shadow-lg p-4" style="width: 500px;">
-    <h2 class="text-center mb-4">Paramètres du cabinet</h2>
+<div class="container my-4">
+  <h2 class="mb-4">Paramètres du cabinet</h2>
 
-    <form method="post" enctype="multipart/form-data" novalidate>
-      {% csrf_token %}
-      {% for field in form %}
-        <div class="mb-3">
-          <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
-          {{ field }}
-          {% if field.errors %}
-            <div class="text-danger small">{{ field.errors|striptags }}</div>
-          {% endif %}
+  <div class="row">
+    <!-- FORMULAIRE -->
+    <div class="col-md-6">
+      <form method="post" enctype="multipart/form-data" id="clinicForm">
+        {% csrf_token %}
+        <div class="card shadow-sm mb-3">
+          <div class="card-body">
+            {{ form.as_p }}
+          </div>
         </div>
-      {% endfor %}
-      <button type="submit" class="btn btn-primary w-100">Enregistrer</button>
-    </form>
+        <button type="submit" class="btn btn-primary">Enregistrer</button>
+      </form>
+    </div>
 
-    {% if form.instance.logo %}
-      <div class="text-center mt-3">
-        <p>Logo actuel :</p>
-        <img src="{{ form.instance.logo.url }}" alt="Logo actuel" style="height:60px;">
+    <!-- APERÇU EN DIRECT -->
+    <div class="col-md-6">
+      <div class="card shadow-sm">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <strong>Aperçu en direct</strong>
+          <div>
+            <button type="button" id="lightBtn" class="btn btn-outline-secondary btn-sm me-1">Clair</button>
+            <button type="button" id="darkBtn" class="btn btn-outline-dark btn-sm">Sombre</button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div id="preview" style="
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+          ">
+            <img id="preview-logo" src="{% if form.instance.logo %}{{ form.instance.logo.url }}{% endif %}" alt="Logo"
+                 style="max-height: 70px; margin-bottom: 10px; display: {% if form.instance.logo %}block{% else %}none{% endif %};">
+            <h4 id="preview-name">{{ form.instance.name|default:"Nom du cabinet" }}</h4>
+            <p id="preview-slogan">{{ form.instance.slogan|default:"Slogan du cabinet" }}</p>
+            <div class="mt-3">
+              <button class="btn btn-primary me-2">Bouton principal</button>
+              <button class="btn btn-secondary">Bouton secondaire</button>
+            </div>
+          </div>
+        </div>
       </div>
-    {% endif %}
+    </div>
   </div>
 </div>
+
+<!-- SCRIPT DE PRÉVISUALISATION -->
+<script>
+  const nameInput = document.getElementById("id_name");
+  const sloganInput = document.getElementById("id_slogan");
+  const logoInput = document.getElementById("id_logo");
+  const primary = document.getElementById("id_primary_color");
+  const secondary = document.getElementById("id_secondary_color");
+  const background = document.getElementById("id_background_color");
+
+  const preview = document.getElementById("preview");
+  const previewName = document.getElementById("preview-name");
+  const previewSlogan = document.getElementById("preview-slogan");
+  const previewLogo = document.getElementById("preview-logo");
+
+  const lightBtn = document.getElementById("lightBtn");
+  const darkBtn = document.getElementById("darkBtn");
+
+  function updatePreview() {
+    previewName.textContent = nameInput.value || "Nom du cabinet";
+    previewSlogan.textContent = sloganInput.value || "Slogan du cabinet";
+
+    const primaryColor = primary.value || "#0d6efd";
+    const secondaryColor = secondary.value || "#6c757d";
+    const backgroundColor = background.value || "#ffffff";
+
+    preview.style.backgroundColor = backgroundColor;
+    preview.style.borderColor = primaryColor;
+    preview.style.color = "#212529";
+
+    preview.querySelector(".btn-primary").style.backgroundColor = primaryColor;
+    preview.querySelector(".btn-secondary").style.backgroundColor = secondaryColor;
+  }
+
+  // Lecture du logo
+  logoInput.addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function (ev) {
+        previewLogo.src = ev.target.result;
+        previewLogo.style.display = "block";
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+
+  // Bascule clair/sombre
+  lightBtn.addEventListener("click", () => {
+    preview.style.backgroundColor = background.value || "#ffffff";
+    preview.style.color = "#212529";
+  });
+
+  darkBtn.addEventListener("click", () => {
+    preview.style.backgroundColor = "#212529";
+    preview.style.color = "#f8f9fa";
+  });
+
+  // Mise à jour dynamique
+  [nameInput, sloganInput, primary, secondary, background].forEach(el => {
+    el.addEventListener("input", updatePreview);
+  });
+
+  document.addEventListener("DOMContentLoaded", updatePreview);
+</script>
 {% endblock %}

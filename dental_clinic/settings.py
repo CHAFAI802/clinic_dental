@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     # Crispy Forms
     'crispy_forms',
     'crispy_bootstrap5',
+    "widget_tweaks",
 ]
 
 MIDDLEWARE = [
@@ -65,7 +66,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'django.template.context_processors.debug',
-                'core.context_processors.clinic_info',
+                'core.context_processors.clinic_settings',
             ],
         },
     },

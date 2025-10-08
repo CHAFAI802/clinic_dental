@@ -2,6 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.http import JsonResponse
 from django.template.loader import render_to_string
+from django.core.exceptions import PermissionDenied
 from django.db.models import Q
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView, CreateView, UpdateView, DetailView, DeleteView
@@ -12,6 +13,7 @@ from django.core.exceptions import ValidationError
 from .models import Appointment
 from .forms import AppointmentForm
 from patients.models import Patient
+from django.contrib import messages
 import json
 from django.core.serializers.json import DjangoJSONEncoder
 
@@ -124,7 +126,22 @@ class AppointmentCreateView(LoginRequiredMixin, CreateView):
 
         return context
 
+@login_required
+def confirm_presence(request, pk):
+    """
+    Vue appelée par la secrétaire pour confirmer la présence du patient.
+    Change le statut à 'present' et déclenche le signal de facturation.
+    """
+    appointment = get_object_or_404(Appointment, pk=pk)
 
+    if request.user.role not in ["secretaire", "admin"]:
+        raise PermissionDenied("Seule la secrétaire peut confirmer la présence d’un patient.")
+
+    appointment.status = "present"  # ✅ Ce changement déclenche le signal
+    appointment.save()
+
+    messages.success(request, f"La présence du patient {appointment.patient} a été confirmée.")
+    return redirect("appointments:appointment_list")
     
 class AppointmentDetailView(LoginRequiredMixin, DetailView):
     model = Appointment

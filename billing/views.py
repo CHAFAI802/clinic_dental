@@ -26,7 +26,7 @@ class BillingListView(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         qs = Billing.objects.filter(
-            appointment__patient__medecin=self.request.user
+            appointment__medecin=self.request.user
         ).order_by("-issued_at")
 
         # récupération des filtres GET
@@ -50,7 +50,7 @@ class BillingListView(LoginRequiredMixin, ListView):
         context = super().get_context_data(**kwargs)
         # renvoyer les valeurs saisies pour les garder dans le formulaire
         context["q"] = self.request.GET.get("q", "")
-        context["date"] = self.request.GET.get("date", "")
+        context["datetime"] = self.request.GET.get("datetime", "")
         context["paid"] = self.request.GET.get("paid", "")
         return context
 

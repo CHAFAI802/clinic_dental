@@ -17,10 +17,10 @@
       <div class="row mb-3">
         <div class="col-md-6">
           <p><strong>Patient :</strong> {{ appointment.patient }}</p>
-          <p><strong>Date :</strong> {{ appointment.date|date:"d/m/Y" }}</p>
+          <p><strong>Date :</strong> {{ appointment.date|date:"d/m/Y H:i" }}</p>
         </div>
         <div class="col-md-6">
-          <p><strong>Heure :</strong> {{ appointment.time|time:"H:i" }}</p>
+          <p><strong>Heure :</strong> {{ appointment.time|date:"d/m/Y H:i" }}</p>
           <p><strong>Médecin :</strong> {{ appointment.medecin }}</p>  {# <-- corrigé ici #}
         </div>
       </div>

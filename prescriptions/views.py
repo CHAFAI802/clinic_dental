@@ -36,7 +36,7 @@ class PatientPrescriptionsListView(LoginRequiredMixin, ListView):
         return (Prescription.objects
                 .filter(appointment__patient__medecin=self.request.user)
                 .select_related("appointment")
-                .order_by("-appointment__date"))
+                .order_by("-appointment__datetime"))
 
 
 class PatientAllPrescriptionsListView(LoginRequiredMixin, ListView):
@@ -53,7 +53,7 @@ class PatientAllPrescriptionsListView(LoginRequiredMixin, ListView):
                     appointment__patient__medecin=self.request.user
                 )
                 .select_related("appointment")
-                .order_by("-appointment__date"))
+                .order_by("-appointment__datetime"))
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

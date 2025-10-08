@@ -20,7 +20,7 @@
         {% for prescription in prescriptions %}
         <tr>
           <td>{{ prescription.appointment.patient.first_name }} {{ prescription.appointment.patient.last_name }}</td>
-          <td>{{ prescription.appointment.date|date:"d/m/Y" }}</td>
+          <td>{{ prescription.appointment.datetime|date:"d/m/Y H:i" }}</td>
           <td>{{ prescription.text|truncatechars:50 }}</td>
           <td>
             <a class="btn btn-primary" href="{% url 'prescriptions:prescription_create' prescription.pk  %}">➕ Nouvelle ordonnance</a>

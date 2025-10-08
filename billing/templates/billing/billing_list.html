@@ -13,7 +13,7 @@
            class="form-control">
   </div>
   <div class="col-md-3">
-    <input type="date" name="date" value="{{ date }}" class="form-control">
+    <input type="date" name="date" value="{{ datetime }}" class="form-control">
   </div>
   <div class="col-md-3">
     <select name="paid" class="form-select">
@@ -37,7 +37,32 @@
       <th>Actions</th>
     </tr>
   </thead>
-  
+  <tbody>
+    {% for billing in billings %}
+      <tr>
+        <td>{{ billing.id }}</td>
+        <td>{{ billing.appointment.patient.last_name }} {{ billing.appointment.patient.first_name }}</td>
+        <td>{{ billing.amount }} €</td>
+        <td>
+          {% if billing.paid %}
+            <span class="badge bg-success">Oui</span>
+            {% else %}
+            <span class="badge bg-danger">Non</span>
+          {% endif %}
+        </td>
+        <td>{{ billing.issued_at|date:"d/m/Y H:i" }}</td>
+        <td>
+        <a href="{% url 'billing:billing_detail' billing.id %}" class="btn btn-sm btn-info">Voir</a>
+        <a href="{% url 'billing:billing_update' billing.id %}" class="btn btn-sm btn-warning">Modifier</a>
+        <a href="{% url 'billing:billing_delete' billing.id %}" class="btn btn-sm btn-danger">Supprimer</a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="6" class="text-center text-muted">Aucune facture trouvée.</td>
+      </tr>
+    {% endfor %}
+  </tbody>
 </table>
 
 {% if is_paginated %}

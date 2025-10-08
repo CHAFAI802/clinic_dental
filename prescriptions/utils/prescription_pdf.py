@@ -48,7 +48,8 @@ def draw_prescription(c, prescription):
     c.setFont("Helvetica", 10)
     c.drawString(1*cm, height - 6*cm, f"Patient : {prescription.appointment.patient}")
     c.drawString(1*cm, height - 6.7*cm,
-                 f"Date du rendez-vous : {prescription.appointment.date.strftime('%d/%m/%Y')}")
+                 f"Date du rendez-vous : {prescription.appointment.datetime.strftime('%d/%m/%Y %H:%M')}"
+                )
 
     # Texte
     if prescription.text:
@@ -80,6 +81,6 @@ def draw_prescription(c, prescription):
     c.line(1*cm, 3*cm, width - 1*cm, 3*cm)
     c.setFont("Helvetica", 9)
     c.drawString(1*cm, 2.4*cm, "Fait à : _____________")
-    c.drawString(1*cm, 1.9*cm, f"Le : {prescription.appointment.date.strftime('%d/%m/%Y')}")
+    c.drawString(1*cm, 1.9*cm, f"Le : {prescription.appointment.datetime.strftime('%d/%m/%Y %H:%M')}")
     c.setFont("Helvetica-Oblique", 9)
     c.drawString(width - 6*cm, 1.5*cm, "Signature et cachet du médecin")

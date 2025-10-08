@@ -15,7 +15,7 @@ class Patient(models.Model):
     email = models.EmailField(unique=True, null=True, blank=True)
     address = models.TextField(blank=True, null=True)
     medical_history = models.TextField(blank=True, null=True)
-    consultation_fee = models.DecimalField(  # <-- ajouté
+    consultation_fee = models.DecimalField( 
         max_digits=10, decimal_places=2, default=500.00,
         help_text="Tarif standard de consultation"
     )

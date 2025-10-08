@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container my-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="mb-0">Liste complète des rendez-vous</h2>
+    <a href="{% url 'appointments:appointment_create' %}" class="btn btn-primary">
+      Nouveau rendez-vous
+    </a>
+  </div>
+
+  <!-- Formulaire de recherche -->
+  <form method="get" class="mb-3" id="search-form">
+    <div class="input-group">
+      <input type="text" name="q" value="{{ request.GET.q }}" class="form-control" placeholder="Rechercher un patient ou un médecin..." id="search-input">
+      <button class="btn btn-outline-secondary" type="submit">Rechercher</button>
+    </div>
+  </form>
+
+  <!-- Liste des rendez-vous -->
+  <table class="table table-striped table-hover">
+    <thead>
+      <tr>
+        <th>Patient</th>
+        <th>Médecin</th>
+        <th>Date & Heure</th>
+        <th>Statut</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for appointment in appointments %}
+      <tr>
+        <td>{{ appointment.patient.first_name }} {{ appointment.patient.last_name }}</td>
+        <td>
+          {% if appointment.medecin %}
+            {{ appointment.medecin.first_name }} {{ appointment.medecin.last_name }}
+          {% else %}
+            -
+          {% endif %}
+        </td>
+        <td>{{ appointment.datetime|date:"d/m/Y H:i" }}</td>
+        <td>
+          {% if appointment.status == "scheduled" %}
+            <span class="badge bg-primary">Planifié</span>
+          {% elif appointment.status == "completed" %}
+            <span class="badge bg-success">Terminé</span>
+          {% elif appointment.status == "canceled" %}
+            <span class="badge bg-danger">Annulé</span>
+          {% else %}
+            <span class="badge bg-secondary">Inconnu</span>
+          {% endif %}
+        </td>
+        <td>
+          <a href="{% url 'appointments:appointment_detail' appointment.pk %}" class="btn btn-sm btn-info">Détails</a>
+          {% if user.role == "secretaire" and appointment.status == "scheduled" %}<!-- ✅ Bouton de confirmation de présence -->
+            <form method="post" action="{% url 'appointments:confirm_presence' appointment.pk %}" class="d-inline">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-sm btn-success">Présent</button>
+            </form>
+          {% endif %}
+
+          <a href="{% url 'appointments:appointment_update' appointment.pk %}" class="btn btn-sm btn-warning">Modifier</a>
+          <form method="post" action="{% url 'appointments:appointment_delete' appointment.pk %}" class="d-inline-block" onsubmit="return confirm('Confirmer la suppression du rendez-vous ?');">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-sm btn-danger">Supprimer</button>
+          </form>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="5" class="text-center">Aucun rendez-vous trouvé.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <!-- Pagination -->
+  {% if is_paginated %}
+  <nav>
+    <ul class="pagination justify-content-center">
+      {% if page_obj.has_previous %}
+      <li class="page-item">
+        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">Précédent</a>
+      </li>
+      {% else %}
+      <li class="page-item disabled"><span class="page-link">Précédent</span></li>
+      {% endif %}
+
+      {% for num in paginator.page_range %}
+        {% if page_obj.number == num %}
+          <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+        {% else %}
+          <li class="page-item">
+            <a class="page-link" href="?page={{ num }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">{{ num }}</a>
+          </li>
+        {% endif %}
+      {% endfor %}
+
+      {% if page_obj.has_next %}
+      <li class="page-item">
+        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">Suivant</a>
+      </li>
+      {% else %}
+      <li class="page-item disabled"><span class="page-link">Suivant</span></li>
+      {% endif %}
+    </ul>
+  </nav>
+  {% endif %}
+</div>
+
+<!-- Recherche automatique via JS -->
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const input = document.getElementById("search-input");
+    const form = document.getElementById("search-form");
+
+    let timeout = null;
+    input.addEventListener("input", function() {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => form.submit(), 500); // soumission 0.5s après la saisie
+    });
+});
+</script>
+{% endblock %}

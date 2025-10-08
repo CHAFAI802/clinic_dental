@@ -21,7 +21,7 @@
             <td>
               <!-- lien vers le détail de l’ordonnance -->
               <a href="{% url 'prescriptions:prescription_detail' p.pk %}">
-                {{ p.appointment.date|date:"d/m/Y" }}
+                {{ p.appointment.datetime|date:"d/m/Y H:i" }}
               </a>
             </td>
             <td>{{ p.text|linebreaksbr }}</td>

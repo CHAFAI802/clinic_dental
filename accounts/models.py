@@ -30,27 +30,32 @@ class CustomUserManager(BaseUserManager):
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
     """Modèle utilisateur personnalisé avec email comme identifiant"""
-    
+
+    # ✅ Constantes pour éviter les fautes de frappe
+    ROLE_MEDECIN = "medecin"
+    ROLE_SECRETAIRE = "secretaire"
+    ROLE_ADMIN = "admin"
+
     ROLE_CHOICES = [
-        ("medecin", "Médecin"),
-        ("secretaire", "Secrétaire"),
-        ("admin", "Administrateur"),
+        (ROLE_MEDECIN, "Médecin"),
+        (ROLE_SECRETAIRE, "Secrétaire"),
+        (ROLE_ADMIN, "Administrateur"),
     ]
 
     email = models.EmailField(unique=True, verbose_name="Adresse email")
     first_name = models.CharField(max_length=100, blank=True, verbose_name="Prénom")
     last_name = models.CharField(max_length=100, blank=True, verbose_name="Nom")
     role = models.CharField(
-        max_length=20, 
-        choices=ROLE_CHOICES, 
-        default="secretaire",
+        max_length=20,
+        choices=ROLE_CHOICES,
+        default=ROLE_SECRETAIRE,
         verbose_name="Rôle"
     )
     is_active = models.BooleanField(default=True, verbose_name="Actif")
     is_staff = models.BooleanField(default=False, verbose_name="Staff")
     date_joined = models.DateTimeField(default=timezone.now, verbose_name="Date d'inscription")
     activation_sent_at = models.DateTimeField(null=True, blank=True)
-    
+
     objects = CustomUserManager()
 
     USERNAME_FIELD = "email"
@@ -72,14 +77,21 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         """Retourne le prénom de l'utilisateur"""
         return self.first_name or self.email.split('@')[0]
 
+    # ✅ Méthodes de rôle
     def is_medecin(self):
         """Vérifie si l'utilisateur est un médecin"""
-        return self.role == "medecin"
+        return self.role == self.ROLE_MEDECIN
 
     def is_secretaire(self):
         """Vérifie si l'utilisateur est une secrétaire"""
-        return self.role == "secretaire"
+        return self.role == self.ROLE_SECRETAIRE
 
     def is_admin(self):
         """Vérifie si l'utilisateur est un administrateur"""
-        return self.role == "admin" or self.is_superuser
+        return self.role == self.ROLE_ADMIN or self.is_superuser
+
+    # ✅ Ajout pratique
+    @property
+    def role_label(self):
+        """Retourne le rôle lisible"""
+        return dict(self.ROLE_CHOICES).get(self.role, "Inconnu")

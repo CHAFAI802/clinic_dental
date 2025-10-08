@@ -27,6 +27,7 @@
           <th>Date de naissance</th>
           <th>Téléphone</th>
           <th>Email</th>
+          <th>Médecin</th>
           <th>Actions</th>
         </tr>
       </thead>
@@ -48,9 +49,20 @@
             {% endif %}
           </td>
           <td>
-            <a href="{% url 'patients:patient_update' patient.pk %}" class="btn btn-sm btn-warning">Modifier</a>
-            <a class="btn btn-outline-secondary" href="{% url 'prescriptions:prescription_create' patient.pk %}">📄 Générer ordonnance PDF</a>
-            <a href="{% url 'patients:patient_delete' patient.pk %}" class="btn btn-sm btn-danger">Supprimer</a>
+            {{ patient.medecin.get_full_name }}
+          </td>
+          <td class="d-flex gap-2">
+            <a href="{% url 'patients:patient_update' patient.pk %}" class="btn btn-sm btn-warning">
+              Modifier
+            </a>
+            <a class="btn btn-sm btn-outline-secondary" href="{% url 'prescriptions:prescription_create' patient.pk %}">
+              📄 Générer ordonnance PDF
+            </a>
+            {% if user.is_admin %}
+              <a href="{% url 'patients:patient_delete' patient.pk %}" class="btn btn-sm btn-danger">
+                Supprimer
+              </a>
+            {% endif %}
           </td>
         </tr>
         {% endfor %}
@@ -58,7 +70,7 @@
     </table>
   </div>
 
-  <!-- Navigation pagination -->
+  <!-- Pagination -->
   {% if page_obj.has_other_pages %}
   <nav aria-label="Pagination">
     <ul class="pagination justify-content-center mt-3">

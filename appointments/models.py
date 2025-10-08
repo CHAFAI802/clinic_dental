@@ -1,19 +1,21 @@
 from django.db import models
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.utils import timezone
-from datetime import datetime, timedelta
-from patients.models import Patient
-from django.contrib.auth import get_user_model
+from datetime import timedelta
 
-CustomUser = get_user_model()
+from patients.models import Patient
+
 
 class Appointment(models.Model):
     STATUS_SCHEDULED = "scheduled"
     STATUS_COMPLETED = "completed"
     STATUS_CANCELED = "canceled"
+    STATUS_PRESENT = "present"
 
     STATUS_CHOICES = [
         (STATUS_SCHEDULED, "Planifié"),
+        (STATUS_PRESENT, "Présent"),
         (STATUS_COMPLETED, "Terminé"),
         (STATUS_CANCELED, "Annulé"),
     ]
@@ -25,14 +27,13 @@ class Appointment(models.Model):
         verbose_name="Patient"
     )
     medecin = models.ForeignKey(
-        CustomUser,
+        settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         limit_choices_to={"role": "medecin"},
         related_name="appointments_medecin",
         verbose_name="Médecin"
     )
-    date = models.DateField("Date du rendez-vous")
-    time = models.TimeField("Heure du rendez-vous")
+    datetime = models.DateTimeField("Date et heure du rendez-vous")  # 👈 un seul champ
     reason = models.TextField("Motif", blank=True, null=True)
     done = models.BooleanField(default=False, verbose_name="Rendez-vous effectué")
     status = models.CharField(
@@ -44,32 +45,38 @@ class Appointment(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ["-date", "-time"]
+        ordering = ["-datetime"]
         verbose_name = "Rendez-vous"
         verbose_name_plural = "Rendez-vous"
 
     def __str__(self):
-        return f"{self.patient} - {self.date} {self.time} ({self.get_status_display()})"
+        return f"{self.patient} - {self.datetime.strftime('%d/%m/%Y %H:%M')} ({self.get_status_display()})"
 
     def clean(self):
-        """Validation métier : pas de date passée, pas de chevauchement < 15 min pour un médecin"""
-        dt_rdv = datetime.combine(self.date, self.time)
+        super().clean()
 
-        # 1. Pas de rendez-vous dans le passé
+        if not self.datetime:
+            return
+
+        dt_rdv = self.datetime
+        if timezone.is_naive(dt_rdv):
+            dt_rdv = timezone.make_aware(dt_rdv)
+
+        # Vérif : pas dans le passé
         if dt_rdv < timezone.now():
             raise ValidationError("La date et l'heure du rendez-vous ne peuvent pas être dans le passé.")
 
-        # 2. Vérifier les chevauchements pour le même médecin
-        conflicts = Appointment.objects.filter(
+        # Vérif : chevauchement 20 min
+        overlap_start = dt_rdv
+        overlap_end = dt_rdv + timedelta(minutes=20)
+
+        overlap = Appointment.objects.filter(
             medecin=self.medecin,
-            date=self.date
-        )
+            datetime__gte=overlap_start,
+            datetime__lt=overlap_end,
+        ).exclude(pk=self.pk)
 
-        if self.pk:
-            conflicts = conflicts.exclude(pk=self.pk)
-
-        for rdv in conflicts:
-            rdv_dt = datetime.combine(rdv.date, rdv.time)
-            delta = abs((rdv_dt - dt_rdv).total_seconds()) / 60  # différence en minutes
-            if delta < 15:
-                raise ValidationError("Un autre rendez-vous est déjà prévu dans les 15 minutes pour ce médecin.")
+        if overlap.exists():
+            raise ValidationError(
+                "Ce médecin a déjà un rendez-vous dans cette tranche de 20 minutes."
+            )
