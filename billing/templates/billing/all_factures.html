@@ -1,19 +1,18 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h2>Liste des factures</h2>
+<h2>Toutes les factures</h2>
 
 <a href="{% url 'billing:billing_add' %}" class="btn btn-success mb-3">Ajouter une facture</a>
-<a href="{% url 'billing:billing_export' %}?q={{q}}&date={{date}}&paid={{paid}}" class="btn btn-outline-secondary mb-3">Export CSV</a> 
+<a href="{% url 'billing:billing_export' %}?q={{q}}&date={{date}}&paid={{paid}}" class="btn btn-outline-secondary mb-3">Export CSV</a>
 
 <!-- FORMULAIRE DE RECHERCHE -->
 <form method="get" class="row g-3 mb-4">
-  <div class="col-md-4">
-    <input type="text" name="q" value="{{ q }}" placeholder="Nom du patient"
-           class="form-control">
+  <div class="col-md-3">
+    <input type="text" name="q" value="{{ q }}" placeholder="Nom du patient" class="form-control">
   </div>
   <div class="col-md-3">
-    <input type="date" name="date" value="{{ datetime }}" class="form-control">
+    <input type="date" name="date" value="{{ date }}" class="form-control">
   </div>
   <div class="col-md-3">
     <select name="paid" class="form-select">
@@ -22,15 +21,17 @@
       <option value="0" {% if paid == "0" %}selected{% endif %}>Non payées</option>
     </select>
   </div>
-  <div class="col-md-2">
+  <div class="col-md-3">
     <button type="submit" class="btn btn-primary w-100">Filtrer</button>
   </div>
 </form>
+
 <table class="table table-striped">
   <thead>
     <tr>
       <th>ID</th>
       <th>Patient</th>
+      <th>Médecin</th>
       <th>Montant</th>
       <th>Payée ?</th>
       <th>Date émission</th>
@@ -42,23 +43,24 @@
       <tr>
         <td>{{ billing.id }}</td>
         <td>{{ billing.appointment.patient.last_name }} {{ billing.appointment.patient.first_name }}</td>
+        <td>{{ billing.appointment.medecin.get_full_name }}</td>
         <td>{{ billing.amount }} €</td>
         <td>
           {% if billing.paid %}
             <span class="badge bg-success">Oui</span>
-            {% else %}
+          {% else %}
             <span class="badge bg-danger">Non</span>
           {% endif %}
         </td>
         <td>{{ billing.issued_at|date:"d/m/Y H:i" }}</td>
         <td>
-        <a href="{% url 'billing:billing_detail' billing.id %}" class="btn btn-sm btn-info">Voir</a>
-        <a href="{% url 'billing:billing_delete' billing.id %}" class="btn btn-sm btn-danger">Supprimer</a>
+          <a href="{% url 'billing:billing_detail' billing.id %}" class="btn btn-sm btn-info">Voir</a>
+          <a href="{% url 'billing:billing_delete' billing.id %}" class="btn btn-sm btn-danger">Supprimer</a>
         </td>
       </tr>
-      {% empty %}
+    {% empty %}
       <tr>
-        <td colspan="6" class="text-center text-muted">Aucune facture trouvée.</td>
+        <td colspan="7" class="text-center text-muted">Aucune facture trouvée.</td>
       </tr>
     {% endfor %}
   </tbody>
@@ -74,7 +76,9 @@
   <nav>
     <ul class="pagination">
       {% if page_obj.has_previous %}
-        <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Précédent</a></li>
+        <li class="page-item">
+          <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Précédent</a>
+        </li>
       {% endif %}
 
       {% for num in page_obj.paginator.page_range %}
@@ -86,7 +90,9 @@
       {% endfor %}
 
       {% if page_obj.has_next %}
-        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Suivant</a></li>
+        <li class="page-item">
+          <a class="page-link" href="?page={{ page_obj.next_page_number }}">Suivant</a>
+        </li>
       {% endif %}
     </ul>
   </nav>

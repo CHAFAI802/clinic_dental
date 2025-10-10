@@ -33,77 +33,76 @@
 {% endif %}
 
     <!-- Rendez-vous -->
-    {% if role == "Admin" or role == "Médecin" or role == "Secrétaire" %}
-    <div class="col-md-3">
-      <div class="card text-center shadow-sm border-0"
-           style="background-color: rgba({{ clinic_info.secondary_color|hex_to_rgb }},0.1);">
-        <div class="card-body">
-          <i class="bi bi-calendar-event display-5 text-secondary"></i>
-          <h5 class="card-title mt-2">Rendez-vous</h5>
-          <p class="display-6 fw-bold">{{ appointments|length }}</p>
-          <a href="{% url 'appointments:appointment_list' %}" class="btn btn-outline-secondary btn-sm">Voir</a>
-        </div>
+{% if role == "Admin" or role == "Médecin" or role == "Secrétaire" %}
+  <div class="col-md-3">
+    <div class="card text-center shadow-sm border-0"
+      style="background-color: rgba({{ clinic_info.secondary_color|hex_to_rgb }},0.1);">
+      <div class="card-body">
+        <i class="bi bi-calendar-event display-5 text-secondary"></i>
+        <h5 class="card-title mt-2">Rendez-vous</h5>
+        <p class="display-6 fw-bold">{{ appointments|length }}</p>
+        <a href="{% url 'appointments:appointment_list' %}" class="btn btn-outline-secondary btn-sm">Voir</a>
       </div>
     </div>
-    {% endif %}
+  </div>
+{% endif %}
 
-    <!-- Prescriptions -->
-    {% if role == "Admin" or role == "Médecin" %}
-    <div class="col-md-3">
-      <div class="card text-center shadow-sm border-0" style="background-color: rgba(40,167,69,0.1);">
-        <div class="card-body">
-          <i class="bi bi-file-medical display-5 text-success"></i>
-          <h5 class="card-title mt-2">Prescriptions</h5>
-          <p class="display-6 fw-bold">{{ stats.prescriptions }}</p>
-          <a href="{% url 'prescriptions:prescription_list' %}" class="btn btn-outline-success btn-sm">Voir</a>
-        </div>
+<!-- Prescriptions -->
+{% if role == "Admin" or role == "Médecin" %}
+  <div class="col-md-3">
+    <div class="card text-center shadow-sm border-0" style="background-color: rgba(40,167,69,0.1);">
+      <div class="card-body">
+        <i class="bi bi-file-medical display-5 text-success"></i>
+        <h5 class="card-title mt-2">Prescriptions</h5>
+        <p class="display-6 fw-bold">{{ stats.prescriptions }}</p>
+        <a href="{% url 'prescriptions:prescription_list' %}" class="btn btn-outline-success btn-sm">Voir</a>
       </div>
     </div>
-    {% endif %}
+  </div>
+{% endif %}
 
-    <!-- Factures -->
-    {% if role == "Admin" or role == "Médecin" or role == "Secrétaire" %}
-    <div class="col-md-3">
-      <div class="card text-center shadow-sm border-0" style="background-color: rgba(220,53,69,0.1);">
-        <div class="card-body">
-          <i class="bi bi-receipt display-5 text-danger"></i>
-          <h5 class="card-title mt-2">Factures</h5>
-          <p class="display-6 fw-bold">{{ stats.billings }}</p>
-          <a href="{% url 'billing:billing_list' %}" class="btn btn-outline-danger btn-sm">Voir</a>
-        </div>
+<!-- Factures -->
+{% if role == "Admin" or role == "Médecin" or role == "Secrétaire" %}
+  <div class="col-md-3">
+    <div class="card text-center shadow-sm border-0" style="background-color: rgba(220,53,69,0.1);">
+      <div class="card-body">
+        <i class="bi bi-receipt display-5 text-danger"></i>
+        <h5 class="card-title mt-2">Factures</h5>
+        <p class="display-6 fw-bold">{{ stats.billings }}</p>
+        <a href="{% url 'billing:billing_list' %}" class="btn btn-outline-danger btn-sm">Voir</a>
       </div>
     </div>
-    {% endif %}
+  </div>
+{% endif %}
 
-    <!-- Produits / Stock -->
-    {% if role == "Admin" and stats.products %}
-    <div class="col-md-3">
-      <div class="card text-center shadow-sm border-0" style="background-color: rgba(13,110,253,0.05);">
-        <div class="card-body">
-          <i class="bi bi-box-seam display-5 text-info"></i>
-          <h5 class="card-title mt-2">
-            Produits
-            {% if stats.alerts_count > 0 %}
-              <button class="btn btn-warning position-relative mb-3"
-                type="button"
-                data-bs-toggle="offcanvas"
-                data-bs-target="#alertsOffcanvas"
-                aria-controls="alertsOffcanvas">
-                Alertes
-                <span class="badge bg-danger position-absolute top-0 start-100 translate-middle">
-                  {{ stats.alerts_count }}
-                </span>
-              </button>
-            {% endif %}
-          </h5>
+<!-- Produits / Stock -->
+{% if role == "Admin" and stats.products %}
+  <div class="col-md-3">
+    <div class="card text-center shadow-sm border-0" style="background-color: rgba(13,110,253,0.05);">
+      <div class="card-body">
+        <i class="bi bi-box-seam display-5 text-info"></i>
+        <h5 class="card-title mt-2">
+          Produits
+          {% if stats.alerts_count > 0 %}
+            <button class="btn btn-warning position-relative mb-3"
+              type="button"
+              data-bs-toggle="offcanvas"
+              data-bs-target="#alertsOffcanvas"
+              aria-controls="alertsOffcanvas">
+              Alertes
+              <span class="badge bg-danger position-absolute top-0 start-100 translate-middle">
+                {{ stats.alerts_count }}
+              </span>
+            </button>
+          {% endif %}
+        </h5>
           <p class="display-6 fw-bold">{{ stats.products }}</p>
           <a href="{% url 'stock:product_list' %}" class="btn btn-outline-info btn-sm">Voir</a>
-        </div>
       </div>
     </div>
-    {% endif %}
   </div>
-</div>
+{% endif %}
+
 
 <!-- Offcanvas Alertes -->
 {% if role == "Admin" and stats.products %}

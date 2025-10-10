@@ -66,7 +66,10 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'django.template.context_processors.debug',
-                'core.context_processors.clinic_settings',
+                'core.context_processors.clinic_settings', 
+                'core.context_processors.environment_context',
+                'core.context_processors.environment_banner_context',
+
             ],
         },
     },
@@ -166,3 +169,6 @@ WEASYPRINT_BASEURL = STATIC_ROOT
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Active ou désactive le bandeau d’environnement (admin et frontend)
+SHOW_ENV_BANNER = True

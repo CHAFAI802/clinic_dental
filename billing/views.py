@@ -25,26 +25,38 @@ class BillingListView(LoginRequiredMixin, ListView):
     paginate_by = 10
 
     def get_queryset(self):
-        qs = Billing.objects.filter(
-            appointment__medecin=self.request.user
-        ).order_by("-issued_at")
+        user = self.request.user
+
+        # Vue de base
+        qs = Billing.objects.all().order_by("-issued_at")
+
+        # Restriction pour les médecins
+        if getattr(user, "role", None) == "medecin":
+            qs = qs.filter(appointment__medecin=user)
 
         # récupération des filtres GET
         nom_patient = self.request.GET.get("q", "").strip()
-        date_facture = self.request.GET.get("date", "").strip()
+        date_facture = self.request.GET.get("datetime", "").strip()
         paid = self.request.GET.get("paid", "").strip()
 
+        # Filtres facultatifs
         if nom_patient:
             qs = qs.filter(appointment__patient__last_name__icontains=nom_patient)
 
         if date_facture:
-            # format YYYY-MM-DD dans l’input type="date"
             qs = qs.filter(issued_at__date=date_facture)
 
         if paid in ["0", "1"]:
             qs = qs.filter(paid=bool(int(paid)))
 
         return qs
+
+    def get_template_names(self):
+        user = self.request.user
+        if getattr(user, "role", None) in ["admin", "secretaire"]:
+            return ["billing/all_factures.html"]
+        return ["billing/billing_list.html"]
+
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -93,7 +105,13 @@ class BillingDetailView(LoginRequiredMixin, DetailView):
     context_object_name = 'billing'
 
     def get_queryset(self):
-        return Billing.objects.filter(appointment__patient__medecin=self.request.user)
+        user = self.request.user
+
+        if getattr(user, "role", None) in ["admin", "secretaire"]:
+            return Billing.objects.all()
+
+        # Médecin : seulement ses factures
+        return Billing.objects.filter(appointment__medecin=user)
 
 
 

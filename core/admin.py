@@ -17,7 +17,7 @@ class ClinicInfoAdmin(admin.ModelAdmin):
         return "(Aucun logo)"
     logo_preview.short_description = "Aperçu du logo"
 
-@admin.site.each_context
+
 def add_version_to_admin_context(request):
     """
     Injecte la version actuelle du projet dans le contexte du site d'administration.

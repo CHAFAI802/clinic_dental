@@ -40,70 +40,74 @@
 
 <!-- NAVBAR -->
 <nav class="navbar navbar-expand-lg mb-3">
-    <div class="container-fluid d-flex justify-content-between align-items-center">
-        <div class="d-flex align-items-center">
-            {% if clinic_info.show_logo %}
-                {% if clinic_info.logo %}
-                    <img id="logo-dark" src="{{ clinic_info.logo.url }}" alt="Logo clair" height="40" class="me-2">
+    <div class="container-fluid">
+        <div class="d-flex align-items-center w-100 justify-content-between">
+            <!-- Logo + nom + bouton bascule -->
+            <div class="d-flex align-items-center">
+                {% if clinic_info.show_logo %}
+                    {% if clinic_info.logo %}
+                        <img id="logo-dark" src="{{ clinic_info.logo.url }}" alt="Logo clair" height="40" class="me-2">
+                    {% endif %}
+                    {% if clinic_info.logo_light %}
+                        <img id="logo-light" src="{{ clinic_info.logo_light.url }}" alt="Logo sombre" height="40" class="me-2" style="display:none;">
+                    {% endif %}
                 {% endif %}
-                {% if clinic_info.logo_light %}
-                    <img id="logo-dark" src="{{ clinic_info.logo_light.url }}" alt="Logo sombre" height="40" class="me-2" style="display:none;">
-                {% endif %}
-            {% endif %}
-            <a class="navbar-brand mb-0 h5 text-white" href="{% url 'core:dashboard' %}">
-                {{ clinic_info.name }}
-            </a>
+                <a class="navbar-brand mb-0 h5 text-white" href="{% url 'core:dashboard' %}">
+                    {{ clinic_info.name }}
+                </a>
+                <button id="themeToggle" class="btn btn-outline-light btn-sm ms-2 py-0 px-2" type="button">
+                    🌞 / 🌙
+                </button>
+            </div>
+
+            <!-- Bouton hamburger -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                data-bs-target="#navbarNav" aria-controls="navbarNav"
+                aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
         </div>
 
-        <!-- Bouton bascule thème -->
-        <button id="themeToggle" class="btn btn-outline-light btn-sm" type="button">
-            🌞 / 🌙
-        </button>
-
-        <!-- Menu utilisateur -->
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
-                data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false"
-                aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-    </div>
-
-    <div class="collapse navbar-collapse container-fluid" id="navbarNav">
-        <ul class="navbar-nav me-auto">
-            {% if user.is_authenticated %}
-                {% if user.role == 'admin' %}
-                    <li class="nav-item"><a class="nav-link {% if request.resolver_match.url_name == 'clinic_info_update' %}active{% endif %}" href="{% url 'core:clinic_info_update' %}">Paramètres</a></li>
-                    <li class="nav-item"><a class="nav-link {% if request.resolver_match.namespace == 'patients' %}active{% endif %}" href="{% url 'patients:patient_list' %}">Patients</a></li>
-                    <li class="nav-item"><a class="nav-link {% if request.resolver_match.namespace == 'appointments' %}active{% endif %}" href="{% url 'appointments:appointment_list' %}">Rendez-vous</a></li>
-                    <li class="nav-item"><a class="nav-link {% if request.resolver_match.namespace == 'billing' %}active{% endif %}" href="{% url 'billing:billing_list' %}">Factures</a></li>
-                    <li class="nav-item"><a class="nav-link {% if request.resolver_match.namespace == 'stock' %}active{% endif %}" href="{% url 'stock:product_list' %}">Stock</a></li>
-                    <li class="nav-item"><a class="nav-link {% if request.resolver_match.namespace == 'core' %}active{% endif %}" href="{% url 'core:dashboard' %}">Dashboard</a></li>
-
-                {% elif user.role == 'medecin' %}
-                    <li class="nav-item"><a class="nav-link {% if request.resolver_match.namespace == 'patients' %}active{% endif %}" href="{% url 'patients:patient_list' %}">Mes Patients</a></li>
-                    <li class="nav-item"><a class="nav-link {% if request.resolver_match.namespace == 'appointments' %}active{% endif %}" href="{% url 'appointments:appointment_list' %}">Mes Rendez-vous</a></li>
-                    <li class="nav-item"><a class="nav-link {% if request.resolver_match.namespace == 'core' %}active{% endif %}" href="{% url 'core:dashboard' %}">Dashboard</a></li>
-
-                {% elif user.role == 'secretaire' %}
-                    <li class="nav-item"><a class="nav-link {% if request.resolver_match.namespace == 'patients' %}active{% endif %}" href="{% url 'patients:all_patients' %}">Patients</a></li>
-                    <li class="nav-item"><a class="nav-link {% if request.resolver_match.namespace == 'appointments' %}active{% endif %}" href="{% url 'appointments:appointment_list' %}">Rendez-vous</a></li>
-                    <li class="nav-item"><a class="nav-link {% if request.resolver_match.namespace == 'billing' %}active{% endif %}" href="{% url 'billing:billing_list' %}">Factures</a></li>
-                    <li class="nav-item"><a class="nav-link {% if request.resolver_match.namespace == 'core' %}active{% endif %}" href="{% url 'core:dashboard' %}">Dashboard</a></li>
+        <!-- Menu principal -->
+        <div class="collapse navbar-collapse mt-2" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                {% if user.is_authenticated %}
+                    {% if user.role == 'admin' %}
+                        <li class="nav-item"><a class="nav-link {% if request.resolver_match.url_name == 'clinic_info_update' %}active{% endif %}" href="{% url 'core:clinic_info_update' %}">Paramètres</a></li>
+                        <li class="nav-item"><a class="nav-link {% if request.resolver_match.namespace == 'patients' %}active{% endif %}" href="{% url 'patients:patient_list' %}">Patients</a></li>
+                        <li class="nav-item"><a class="nav-link {% if request.resolver_match.namespace == 'appointments' %}active{% endif %}" href="{% url 'appointments:appointment_list' %}">Rendez-vous</a></li>
+                        <li class="nav-item"><a class="nav-link {% if request.resolver_match.namespace == 'billing' %}active{% endif %}" href="{% url 'billing:billing_list' %}">Factures</a></li>
+                        <li class="nav-item"><a class="nav-link {% if request.resolver_match.namespace == 'stock' %}active{% endif %}" href="{% url 'stock:product_list' %}">Stock</a></li>
+                        <li class="nav-item"><a class="nav-link {% if request.resolver_match.namespace == 'core' %}active{% endif %}" href="{% url 'core:dashboard' %}">Dashboard</a></li>
+                    {% elif user.role == 'medecin' %}
+                        <li class="nav-item"><a class="nav-link {% if request.resolver_match.namespace == 'patients' %}active{% endif %}" href="{% url 'patients:patient_list' %}">Patients</a></li>
+                        <li class="nav-item"><a class="nav-link {% if request.resolver_match.namespace == 'appointments' %}active{% endif %}" href="{% url 'appointments:appointment_list' %}">Rendez-vous</a></li>
+                        <li class="nav-item"><a class="nav-link {% if request.resolver_match.namespace == 'billing' %}active{% endif %}" href="{% url 'billing:billing_list' %}">Factures</a></li>
+                        <li class="nav-item"><a class="nav-link {% if request.resolver_match.namespace == 'Prescriptions' %}active{% endif %}" href="{% url 'prescriptions:prescription_list' %}">Prescriptions</a></li>
+                        <li class="nav-item"><a class="nav-link {% if request.resolver_match.namespace == 'core' %}active{% endif %}" href="{% url 'core:dashboard' %}">Dashboard</a></li>
+                    {% elif user.role == 'secretaire' %}
+                        <li class="nav-item"><a class="nav-link {% if request.resolver_match.namespace == 'patients' %}active{% endif %}" href="{% url 'patients:patient_list' %}">Patients</a></li>
+                        <li class="nav-item"><a class="nav-link {% if request.resolver_match.namespace == 'appointments' %}active{% endif %}" href="{% url 'appointments:appointment_list' %}">Rendez-vous</a></li>
+                        <li class="nav-item"><a class="nav-link {% if request.resolver_match.namespace == 'billing' %}active{% endif %}" href="{% url 'billing:billing_list' %}">Factures</a></li>
+                        <li class="nav-item"><a class="nav-link {% if request.resolver_match.namespace == 'core' %}active{% endif %}" href="{% url 'core:dashboard' %}">Dashboard</a></li>
+                    {% endif %}
                 {% endif %}
-            {% endif %}
-        </ul>
+            </ul>
 
-        <ul class="navbar-nav">
-            {% if user.is_authenticated %}
-                <li class="nav-item"><span class="nav-link">Bonjour, {{ user.first_name }}</span></li>
-                <li class="nav-item"><a class="nav-link" href="{% url 'accounts:logout' %}">Déconnexion</a></li>
-            {% else %}
-                <li class="nav-item"><a class="nav-link" href="{% url 'accounts:login' %}">Connexion</a></li>
-                <li class="nav-item"><a class="nav-link" href="{% url 'accounts:register' %}">Inscription</a></li>
-            {% endif %}
-        </ul>
+            <!-- Liens utilisateur -->
+            <ul class="navbar-nav">
+                {% if user.is_authenticated %}
+                    <li class="nav-item"><span class="nav-link">Bonjour, {{ user.first_name }}</span></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'accounts:logout' %}">Déconnexion</a></li>
+                {% else %}
+                    <li class="nav-item"><a class="nav-link" href="{% url 'accounts:login' %}">Connexion</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'accounts:register' %}">Inscription</a></li>
+                {% endif %}
+            </ul>
+        </div>
     </div>
 </nav>
+
 
 <!-- Messages -->
 <div class="container mt-2">
@@ -135,9 +139,8 @@
         {% if clinic_info.linkedin %}
             | <a href="{{ clinic_info.linkedin }}" target="_blank">LinkedIn</a>
         {% endif %}
+        Cabinet Dentaire — {{ version }}
     </small>
-
-    <small>Cabinet Dentaire — {{ version }}</small>
 </footer>
 
 <!-- Script de bascule de thème -->
@@ -154,33 +157,44 @@
     function applyTheme() {
         if (darkMode) {
             themeStyle.innerHTML = `
-                 body { background-color: #353c42ff; color: #f8f9fa; font-family: {{ clinic_info.font_family }}; transition: background-color 0.4s ease, color 0.4s ease; }
+                body { background-color: #353c42ff; color: #f8f9fa; font-family: {{ clinic_info.font_family }}; transition: background-color 0.4s ease, color 0.4s ease; }
 
                 /* Navbar et footer avec effet lumineux */
                 .navbar, footer { 
-                background-color: #212529; 
-                color: #f8f9fa; 
-                transition: background-color 0.4s ease, color 0.4s ease; 
+                    background-color: #212529; 
+                    color: #f8f9fa; 
+                    transition: background-color 0.4s ease, color 0.4s ease; 
                 }
+
                 .nav-link, .navbar-brand, footer a { 
-                color: #f8f9fa !important; 
-                text-shadow: 0 0 6px rgba(13, 110, 253, 0.8); 
-                transition: all 0.3s ease-in-out;
+                    color: #f8f9fa !important; 
+                    text-shadow: 0 0 6px rgba(13, 110, 253, 0.8); 
+                    transition: all 0.3s ease-in-out;
                 }
+
                 .nav-link:hover, .navbar-brand:hover, footer a:hover { 
-                color: #9fd326ff !important; 
-                text-shadow: 0 0 10px rgba(216, 235, 53, 1); 
+                    color: #9fd326ff !important; 
+                    text-shadow: 0 0 10px rgba(216, 235, 53, 1); 
                 }
 
                 a { color: #c9fd0dff; transition: color 0.4s ease; }
 
                 .btn-outline-light { 
-                border-color: #f8f9fa; 
-                color: #f8f9fa; 
+                    border-color: #f8f9fa; 
+                    color: #f8f9fa; 
                 }
+
                 .btn-outline-light:hover { 
-                background-color: #f8f9fa; 
-                color: #212529; 
+                    background-color: #ecf1f5ff; 
+                    color: #e2eaf1ff; 
+                }
+
+                /* Bouton du menu mobile (navbar-toggler) en clair */
+                .navbar-toggler {
+                    border-color: #f8f9fa !important;
+                }
+                .navbar-toggler-icon {
+                    background-image: url("data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 30 30' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='rgba(248,249,250, 1)' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E");
                 }
 
                 @keyframes haloPulse {
@@ -191,26 +205,41 @@
                         filter: drop-shadow(0 0 25px rgba(171, 194, 89, 1));
                     }
                 }
+
                 #logo-dark {
-                filter: drop-shadow(0 0 6px rgba(239, 241, 67, 0.9));
-                transition: filter 0.4s ease-in-out;
+                    filter: drop-shadow(0 0 6px rgba(239, 241, 67, 0.9));
+                    transition: filter 0.4s ease-in-out;
                 }
+
                 #logo-dark:hover {
-                filter: drop-shadow(0 0 14px rgba(193, 224, 81, 1));
+                    filter: drop-shadow(0 0 14px rgba(193, 224, 81, 1));
                 }
             `;
+
             themeToggle.textContent = "🌞 Mode clair";
             if (logoLight) logoLight.style.display = "none";
             if (logoDark) logoDark.style.display = "inline";
-        }
-        else {
+
+        } else {
             themeStyle.innerHTML = `
                 body { background-color: {{ clinic_info.background_color }}; color: #212529; font-family: {{ clinic_info.font_family }}; transition: background-color 0.4s ease, color 0.4s ease; }
                 .navbar, footer { background-color: {{ clinic_info.primary_color }}; color: #ffffff; transition: background-color 0.4s ease, color 0.4s ease; }
                 a { color: {{ clinic_info.primary_color }}; transition: color 0.4s ease; }
                 .btn-outline-light { border-color: #ffffff; color: #ffffff; }
                 .btn-outline-light:hover { background-color: #ffffff; color: {{ clinic_info.primary_color }}; }
+
+                /* Couleur par défaut du bouton de menu mobile */
+                
+                .navbar-toggler {
+                    border-color: #000007ff !important;
+                }
+                .navbar-toggler-icon {
+                    background-image: url("data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 30 30' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='rgba(248,249,250, 1)' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E");
+                }
+                
+               
             `;
+
             themeToggle.textContent = "🌙 Mode sombre";
             if (logoLight) logoLight.style.display = "inline";
             if (logoDark) logoDark.style.display = "none";
@@ -225,6 +254,7 @@
 
     applyTheme();
 </script>
+
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 

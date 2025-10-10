@@ -56,7 +56,7 @@
               Modifier
             </a>
             <a class="btn btn-sm btn-outline-secondary" href="{% url 'prescriptions:prescription_create' patient.pk %}">
-              📄 Générer ordonnance PDF
+              📄 Générer ordonnance 
             </a>
             {% if user.is_admin %}
               <a href="{% url 'patients:patient_delete' patient.pk %}" class="btn btn-sm btn-danger">

@@ -1,6 +1,6 @@
 from .models import ClinicInfo
-from core.utils import get_version
 from django.conf import settings
+
 
 def clinic_settings(request):
     """Injecte les informations du cabinet dans tous les templates."""
@@ -21,19 +21,34 @@ def clinic_settings(request):
         "theme_mode": "dark" if dark_mode else "light",
     }
 
-def version_context(request):
-    return {"version": get_version()}
+def environment_context(request):
+    """
+    Indique dans quel environnement tourne le projet (dev / prod).
+    """
+    if settings.DEBUG:
+        env = "Développement"
+        color = "#0d6efd"  # bleu
+    else:
+        env = "Production"
+        color = "#198754"  # vert
+
+    return {"environment_name": env, "environment_color": color}
 
 
 def environment_banner_context(request):
     """
-    Rend le bandeau d'environnement disponible sur le site public,
-    visible uniquement pour les administrateurs connectés.
+    Rend le bandeau d'environnement disponible sur le site public
+    uniquement pour les administrateurs connectés,
+    et seulement si SHOW_ENV_BANNER = True dans settings.py.
     """
+    # Vérification du paramètre global
+    if not getattr(settings, "SHOW_ENV_BANNER", True):
+        return {}
+
+    # Affichage réservé aux admins connectés
     if not request.user.is_authenticated or getattr(request.user, "role", "") != "admin":
         return {}
 
-    from django.conf import settings
     env_name = "Développement" if settings.DEBUG else "Production"
     env_color = "#0d6efd" if settings.DEBUG else "#198754"
 
