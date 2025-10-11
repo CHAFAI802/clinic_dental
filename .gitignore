@@ -41,3 +41,5 @@ htmlcov/
 
 # --- Compilations front (si ajout) ---
 node_modules/
+core/migrations/
+patients/migrations/
