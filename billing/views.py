@@ -1,20 +1,21 @@
 from django.urls import reverse_lazy
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView,DetailView
-from .models import Billing
-from .forms import BillingForm
-from django.shortcuts import get_object_or_404, redirect
+from .models import Billing,ClinicHeader
+from .forms import BillingForm,HeaderForm
+from django.shortcuts import get_object_or_404, redirect,render
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.contrib.auth.mixins import LoginRequiredMixin
 import io
-from django.http import FileResponse, Http404,HttpResponse
+from django.http import FileResponse, Http404,HttpResponse,JsonResponse
 from django.contrib.auth.decorators import login_required
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
 from .models import Billing  
 import csv
 from django.db.models import Q , Sum
+from documents.models import DocumentTemplate
 
 
 # billing/views.py
@@ -99,21 +100,32 @@ class BillingExportCSVView(LoginRequiredMixin, View):
             ])
         return response   
 
+
+
+
 class BillingDetailView(LoginRequiredMixin, DetailView):
     model = Billing
-    template_name = 'billing/billing_detail.html'
-    context_object_name = 'billing'
+    template_name = "billing/billing_detail.html"
+    context_object_name = "billing"
 
     def get_queryset(self):
+        """Filtrer les factures selon le rôle de l'utilisateur."""
         user = self.request.user
 
         if getattr(user, "role", None) in ["admin", "secretaire"]:
             return Billing.objects.all()
 
-        # Médecin : seulement ses factures
+        # Médecin : uniquement ses propres factures
         return Billing.objects.filter(appointment__medecin=user)
 
-
+    def get_context_data(self, **kwargs):
+        """Ajouter le template de document associé à la facturation."""
+        context = super().get_context_data(**kwargs)
+        context["billing_template"] = DocumentTemplate.objects.filter(
+            doc_type="billing",
+            created_by=self.request.user
+        ).first()
+        return context
 
 class BillingCreateView(LoginRequiredMixin, CreateView):
     model = Billing
@@ -155,7 +167,7 @@ class BillingTogglePaidView(View):
 def generate_billing_pdf(request, pk):
     """Génère un PDF pour une facture Billing donnée"""
     billing = get_object_or_404(Billing, pk=pk)
-
+    
     # (optionnel) : contrôler que l'utilisateur est bien le médecin du patient
     if billing.appointment.patient.medecin != request.user:
         raise Http404("Vous n'avez pas accès à cette facture")
@@ -164,9 +176,18 @@ def generate_billing_pdf(request, pk):
     p = canvas.Canvas(buffer, pagesize=A4)
     width, height = A4
 
-    # --------- En-tête ----------
-    p.setFont("Helvetica-Bold", 16)
-    p.drawString(200, 800, "FACTURE")
+     # Charger l’en-tête
+    header = ClinicHeader.objects.first()
+    if header:
+        if header.logo:
+            p.drawImage(header.logo.path, 50, 780, width=80, height=60)
+        if header.header_text:
+            p.setFont("Helvetica-Bold", 14)
+            p.drawString(150, 800, header.header_text)
+
+    else:
+        p.setFont("Helvetica-Bold", 16)
+        p.drawString(200, 800, "FACTURE")
 
     # --------- Informations ----------
     p.setFont("Helvetica", 12)
@@ -183,4 +204,21 @@ def generate_billing_pdf(request, pk):
     p.save()
 
     buffer.seek(0)
-    return FileResponse(buffer, as_attachment=True, filename=f"facture_{billing.id}.pdf")
+    return FileResponse(buffer, as_attachment=True, filename=f"facture_{billing.id}.pdf") 
+
+
+def header_config(request):
+    header, created = ClinicHeader.objects.get_or_create(pk=1)
+    if request.method == 'POST':
+        form = HeaderForm(request.POST, request.FILES, instance=header)
+        if form.is_valid():
+            form.save()
+            return redirect('header_config')
+    else:
+        form = HeaderForm(instance=header)
+    return render(request, 'billing/header_config.html', {'form': form, 'header': header}) 
+
+
+def preview_header(request):
+    text = request.GET.get('header_text', '')
+    return JsonResponse({'html': f'<h2 style="font-family:Helvetica;">{text}</h2>'})

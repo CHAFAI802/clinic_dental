@@ -1,8 +1,6 @@
 # Framework principal
 Django==5.0.6
 
-# Base de données MySQL
-mysqlclient==2.2.4
 
 # Génération de PDF
 WeasyPrint==62.3
@@ -29,3 +27,7 @@ reportlab==4.2.2
 
 openpyxl
 
+qrcode
+pdfkit
+
+python-dotenv==1.0.1

@@ -103,42 +103,105 @@
   </div>
 {% endif %}
 
+<!--parametres-->
+
+{% if role == "Admin" %}
+  <div class="col-md-3">
+    <div class="card text-center shadow-sm border-0" style="background-color: rgba(13,110,253,0.1);">
+      <div class="card-body">
+        <i class="bi bi-gear display-5 text-primary"></i>
+        <h5 class="card-title mt-2">Paramètres du cabinet</h5>
+        <p class="display-6 fw-bold">
+          <i class="bi bi-tools"></i>
+        </p>
+        <a href="{% url 'core:clinic_info_update' %}" class="btn btn-outline-primary btn-sm">
+          Configurer
+        </a>
+      </div>
+    </div>
+  </div>
+{% endif %} 
+
+<!--Documents-->
+
+{% if role == "Admin" %}
+  <div class="col-md-3">
+    <div class="card text-center shadow-sm border-0" style="background-color: rgba(13,110,253,0.1);">
+      <div class="card-body">
+        <i class="bi bi-file-earmark-text display-5 text-primary"></i>
+        <h5 class="card-title mt-2">Modèles de documents</h5>
+        <p class="display-6 fw-bold">
+          <i class="bi bi-files"></i>
+        </p>
+        <a href="{% url 'documents:template_list' %}" class="btn btn-outline-primary btn-sm">
+          Gérer
+        </a>
+      </div>
+    </div>
+  </div>
+{% endif %}
+
+
+
+
+
 
 <!-- Offcanvas Alertes -->
 {% if role == "Admin" and stats.products %}
-<div class="offcanvas offcanvas-end" tabindex="-1" id="alertsOffcanvas" aria-labelledby="alertsOffcanvasLabel">
-  <div class="offcanvas-header">
-    <h5 class="offcanvas-title" id="alertsOffcanvasLabel">Produits en alerte</h5>
-    <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Fermer"></button>
+<div class="offcanvas offcanvas-end shadow-lg border-0" tabindex="-1" id="alertsOffcanvas" aria-labelledby="alertsOffcanvasLabel">
+  <div class="offcanvas-header bg-dark text-white">
+    <h5 class="offcanvas-title fw-semibold" id="alertsOffcanvasLabel">
+      <i class="bi bi-exclamation-triangle-fill me-2"></i> Alertes Produits
+    </h5>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Fermer"></button>
   </div>
-  <div class="offcanvas-body">
-    <h6 class="fw-bold">Stock faible</h6>
-    <ul class="list-group mb-3">
-      {% for p in stats.produits_stock_faible %}
-        <li class="list-group-item d-flex justify-content-between align-items-center">
-          {{ p.name }}
-          <span class="badge bg-secondary">{{ p.current_stock }}</span>
-        </li>
-      {% empty %}
-        <li class="list-group-item text-muted">Aucun produit en stock faible.</li>
-      {% endfor %}
-    </ul>
 
-    <h6 class="fw-bold">Expiration proche</h6>
-    <ul class="list-group">
-      {% for p in stats.produits_peremption_proche %}
-        <li class="list-group-item d-flex justify-content-between align-items-center">
-          {{ p.name }}
-          <span class="badge bg-danger">{{ p.expiration_date|date:"d/m/Y" }}</span>
-        </li>
-      {% empty %}
-        <li class="list-group-item text-muted">Aucun produit proche de la péremption.</li>
-      {% endfor %}
-    </ul>
-    <div class="mt-3">
-      <a href="{% url 'stock:alerts_list' %}" class="btn btn-dark w-100">Voir toutes les alertes</a>
+  <div class="offcanvas-body bg-light">
+    <!-- Stock faible -->
+    <div class="mb-4">
+      <h6 class="fw-bold text-danger mb-3">
+        <i class="bi bi-box-seam me-2"></i>Stock faible
+      </h6>
+      {% if stats.produits_stock_faible %}
+        <ul class="list-group list-group-flush">
+          {% for p in stats.produits_stock_faible %}
+            <a href="{% url 'stock:product_detail' p.id %}" class="list-group-item list-group-item-action border-0 shadow-sm rounded-3 mb-2 d-flex justify-content-between align-items-center text-decoration-none text-dark hover-glow">
+              <span>{{ p.name }}</span>
+              <span class="badge bg-warning text-dark">{{ p.current_stock }}</span>
+            </a>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="text-muted small mb-0">Aucun produit en stock faible.</p>
+      {% endif %}
+    </div>
+
+    <!-- Péremption proche -->
+    <div class="mb-4">
+      <h6 class="fw-bold text-primary mb-3">
+        <i class="bi bi-clock-history me-2"></i>Expiration proche
+      </h6>
+      {% if stats.produits_peremption_proche %}
+        <ul class="list-group list-group-flush">
+          {% for p in stats.produits_peremption_proche %}
+            <a href="{% url 'stock:product_detail' p.id %}" class="list-group-item list-group-item-action border-0 shadow-sm rounded-3 mb-2 d-flex justify-content-between align-items-center text-decoration-none text-dark hover-glow">
+              <span>{{ p.name }}</span>
+              <span class="badge bg-danger">{{ p.expiration_date|date:"d/m/Y" }}</span>
+            </a>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="text-muted small mb-0">Aucun produit proche de la péremption.</p>
+      {% endif %}
+    </div>
+
+    <div class="text-center">
+      <a href="{% url 'stock:alerts_list' %}" class="btn btn-outline-dark w-100 fw-semibold">
+        <i class="bi bi-list-ul me-2"></i>Voir toutes les alertes
+      </a>
     </div>
   </div>
 </div>
 {% endif %}
+
 {% endblock %}

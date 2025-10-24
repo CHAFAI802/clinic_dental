@@ -27,6 +27,8 @@ urlpatterns = [
     path('',include('accounts.urls')),
     path('stock/', include('stock.urls')),
     path("prescriptions/", include("prescriptions.urls")),
+    path('documents/', include('documents.urls', namespace='documents')),
+
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

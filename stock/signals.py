@@ -3,89 +3,115 @@ from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from .models import Product, Movement,Category
 from django.db.models.signals import post_migrate
+from django.core.exceptions import ValidationError
+
+
+
+from django.db.models.signals import post_save, post_delete
+from django.dispatch import receiver
+from django.db.models import Sum
+from .models import Product, Movement, Category
 
 
 @receiver(post_save, sender=Product)
 def init_current_stock(sender, instance, created, **kwargs):
     """
-    Lors de la création d'un produit, initialise le stock actuel et last_stock
-    à la quantité initiale définie dans le champ quantity.
+    À la création d’un produit :
+    - quantity = stock initial de référence.
+    - current_stock et last_stock sont alignés sur quantity.
     """
     if created:
-        # Si current_stock ou last_stock ne sont pas encore définis
-        if instance.current_stock is None or instance.current_stock == 0:
-            instance.current_stock = instance.quantity
-        if instance.last_stock is None or instance.last_stock == 0:
-            instance.last_stock = instance.quantity
+        instance.current_stock = instance.quantity
+        instance.last_stock = instance.quantity
         instance.save(update_fields=['current_stock', 'last_stock'])
 
 
-def apply_movement(product: Product, movement_type: str, movement_quantity: int):
+def apply_movement(product: Product, movement: Movement):
     """
-    Applique un mouvement sur le stock actuel.
+    Applique un mouvement unique sur un produit.
+    Le mouvement contient :
+      - movement_type : 'IN' ou 'OUT'
+      - movement_quantity : quantité du mouvement
     """
-    current_stock = product.current_stock or 0
-    last_stock = product.last_stock or 0
-    if movement_type == 'IN':
-        new_stock = last_stock+ movement_quantity
-    elif movement_type == 'OUT':
-        new_stock = last_stock - movement_quantity
-        if new_stock < 0:
-            raise ValueError("La quantité OUT dépasse le stock disponible.")
-    else:
-        raise ValueError("Type de mouvement inconnu")
 
-    # mémoriser l'état avant mouvement et enregistrer
-    product.last_stock = current_stock
-    product.current_stock = new_stock
+    # 1️⃣ Stock avant mouvement
+    stock_avant = product.last_stock
+
+    # 2️⃣ Calcul du stock après mouvement
+    if movement.movement_type == 'IN':
+        stock_apres = stock_avant + movement.movement_quantity
+    elif movement.movement_type == 'OUT':
+        if movement.movement_quantity > stock_avant:
+            raise ValueError("La quantité OUT dépasse le stock disponible.")
+        stock_apres = stock_avant - movement.movement_quantity
+    else:
+        raise ValueError("Type de mouvement inconnu.")
+
+    # 3️⃣ Mise à jour du mouvement (trace exacte)
+    movement.last_stock = stock_avant
+    movement.save(update_fields=['last_stock'])
+
+    # 4️⃣ Mise à jour du produit
+    product.last_stock = stock_avant
+    product.current_stock = stock_apres
+    product.save(update_fields=['last_stock', 'current_stock'])
+
+
+@receiver(post_save, sender=Movement)
+def update_stock_on_movement(sender, instance, created, **kwargs):
+    if not created:
+        return
+
+    product = instance.product
+
+    # Sauvegarder l'ancien stock avant le mouvement
+    stock_avant = product.current_stock or 0
+    product.last_stock = stock_avant
+
+    # Calcul du nouveau stock selon le type
+    if instance.movement_type == 'IN':
+        stock_apres = stock_avant + instance.movement_quantity
+    elif instance.movement_type == 'OUT':
+        if instance.movement_quantity > stock_avant:
+            raise ValidationError(
+                f"Stock insuffisant pour le produit {product.name}. "
+                f"Disponible : {stock_avant}, demandé : {instance.movement_quantity}."
+            )
+        stock_apres = stock_avant - instance.movement_quantity
+
+    else:
+        raise ValidationError("Type de mouvement inconnu.")
+
+    product.current_stock = stock_apres
     product.save(update_fields=['last_stock', 'current_stock'])
 
 
 def recompute_current_stock(product: Product):
     """
-    Recalcule complètement le stock actuel à partir du stock initial + tous les mouvements.
+    Recalcule le stock complet à partir du stock initial et de tous les mouvements.
     """
-    total_in = product.movements.filter(movement_type='IN').aggregate(
-        s=Sum('movement_quantity')
-    )['s'] or 0
-    total_out = product.movements.filter(movement_type='OUT').aggregate(
-        s=Sum('movement_quantity')
-    )['s'] or 0
+    total_in = product.movements.filter(movement_type='IN').aggregate(s=Sum('movement_quantity'))['s'] or 0
+    total_out = product.movements.filter(movement_type='OUT').aggregate(s=Sum('movement_quantity'))['s'] or 0
 
-    # quantity = stock initial défini sur Product
     product.current_stock = product.quantity + total_in - total_out
-    product.save(update_fields=['current_stock'])
-
-
-@receiver(post_save, sender=Movement)
-def update_stock_on_save(sender, instance, created, **kwargs):
-    """
-    Signal : chaque fois qu'un Movement est créé ou mis à jour,
-    on met à jour last_stock puis on applique le mouvement.
-    """
-    product = instance.product
-
-    # On mémorise le stock avant le mouvement
     product.last_stock = product.current_stock
-    product.save(update_fields=['last_stock'])
-
-    # On applique ce mouvement précis
-    apply_movement(product, instance.movement_type, instance.movement_quantity)
+    product.save(update_fields=['current_stock', 'last_stock'])
 
 
 @receiver(post_delete, sender=Movement)
 def update_stock_on_delete(sender, instance, **kwargs):
     """
-    Signal : si un Movement est supprimé, on recalcule le stock complet.
+    Lorsqu’un mouvement est supprimé, on recalcule complètement le stock du produit.
     """
     recompute_current_stock(instance.product)
+
 
 @receiver(post_migrate)
 def create_default_categories(sender, **kwargs):
     """
     Crée les catégories par défaut après chaque migration.
     """
-    if sender.name == 'stock':  # n’exécute que pour ton app "stock"
+    if sender.name == 'stock':
         defaults = [
             ('consommable', 'Consommable'),
             ('medicament', 'Médicament'),

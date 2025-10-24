@@ -1,0 +1,31 @@
+{% load static %}
+<div class="container mt-4">
+  <h3>Personnalisation de l'en-tête de facture</h3>
+  <form method="post" enctype="multipart/form-data" id="headerForm">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Enregistrer</button>
+  </form>
+
+  <hr>
+  <h5>Aperçu en temps réel :</h5>
+  <div id="headerPreview" class="border p-3">
+    {% if header.logo %}
+      <img src="{{ header.logo.url }}" alt="Logo" height="80"><br>
+    {% endif %}
+    <h2>{{ header.header_text }}</h2>
+  </div>
+</div>
+
+<script>
+  const textarea = document.querySelector('#id_header_text');
+  const previewDiv = document.getElementById('headerPreview');
+
+  textarea.addEventListener('input', function() {
+    fetch(`/billing/preview-header/?header_text=${encodeURIComponent(this.value)}`)
+      .then(response => response.json())
+      .then(data => {
+        previewDiv.innerHTML = data.html;
+      });
+  });
+</script>

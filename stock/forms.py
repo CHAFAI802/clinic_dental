@@ -40,10 +40,10 @@ class MovementForm(forms.ModelForm):
         # Si c’est une sortie, on vérifie le stock actuel
         if movement_type == 'OUT' and product:
             # suppose que ton modèle Product a un champ "quantity" = stock actuel
-            if movement_quantity > product.quantity:
+            if movement_quantity > product.current_stock:
                 raise forms.ValidationError(
                     f"La quantité demandée ({movement_quantity}) dépasse le stock actuel du produit "
-                    f"({product.quantity})."
+                    f"({product.current_stock})."
                 )
 
         return movement_quantity

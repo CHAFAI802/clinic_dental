@@ -1,0 +1,30 @@
+<!-- templates/core/action_logs.html -->
+{% extends "base.html" %}
+{% block title %}Historique des actions{% endblock %}
+{% block content %}
+<div class="container mt-5">
+  <h2>Historique des actions administratives</h2>
+  <table class="table mt-3">
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Action</th>
+        <th>Administrateur</th>
+        <th>Patient</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for log in logs %}
+      <tr>
+        <td>{{ log.horodatage|date:"d/m/Y H:i" }}</td>
+        <td>{{ log.get_action_type_display }}</td>
+        <td>{{ log.utilisateur }}</td>
+        <td>{{ log.patient_nom }} (ID {{ log.patient_id }})</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="4" class="text-center">Aucune action enregistrée.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -33,7 +33,7 @@
       <th>Patient</th>
       <th>Médecin</th>
       <th>Montant</th>
-      <th>Payée ?</th>
+      <th>Etat</th>
       <th>Date émission</th>
       <th>Actions</th>
     </tr>
@@ -47,9 +47,9 @@
         <td>{{ billing.amount }} €</td>
         <td>
           {% if billing.paid %}
-            <span class="badge bg-success">Oui</span>
+            <span class="badge bg-success">payée</span>
           {% else %}
-            <span class="badge bg-danger">Non</span>
+            <span class="badge bg-danger">impayée</span>
           {% endif %}
         </td>
         <td>{{ billing.issued_at|date:"d/m/Y H:i" }}</td>

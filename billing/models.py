@@ -16,3 +16,10 @@ class Billing(models.Model):
         return f"Facture RDV {self.appointment.id} - {self.amount}€"
     
 
+class ClinicHeader(models.Model):
+    logo = models.ImageField(upload_to='headers/', blank=True, null=True)
+    header_text = models.CharField(max_length=255, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.header_text or "En-tête du cabinet"

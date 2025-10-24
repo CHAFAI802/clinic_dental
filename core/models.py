@@ -1,5 +1,9 @@
 from django.db import models
 from django.core.exceptions import ValidationError
+from django.utils import timezone
+from django.conf import settings
+
+
 
 class ClinicInfo(models.Model):
     name = models.CharField("Nom du cabinet", max_length=255)
@@ -34,3 +38,25 @@ class ClinicInfo(models.Model):
 
     def __str__(self):
         return self.name
+
+# core/models.py
+class ActionLog(models.Model):
+    ACTION_TYPES = [
+        ("SUPPRESSION_PATIENT", "Suppression de patient"),
+        ("RESTAURATION_PATIENT", "Restauration de patient"),
+    ]
+
+    utilisateur = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="actions_logs",
+    )
+    action_type = models.CharField(max_length=50, choices=ACTION_TYPES)
+    patient_last_name = models.CharField(max_length=100)
+    patient_id = models.IntegerField(null=True, blank=True)
+    horodatage = models.DateTimeField(default=timezone.now)
+
+    def __str__(self):
+        return f"{self.get_action_type_display()} - {self.patient_last_name} ({self.horodatage:%d/%m/%Y %H:%M})"

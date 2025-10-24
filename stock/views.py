@@ -30,29 +30,36 @@ class ProductListView(AdminRequiredMixin, ListView):
 
         stock_colors = {}
         stock_variations = {}
+        variation_icons = {}
 
         for product in context['products']:
             last_stock = product.last_stock or 0
             current_stock = product.current_stock or 0
-            initial_stock = product.quantity
-            if initial_stock == current_stock:
+
+            # Éviter division par zéro
+            if current_stock == 0:
                 variation = 100
             else:
-                variation = current_stock  / initial_stock * 100
+                variation = (current_stock  / product.quantity) * 100
 
             stock_variations[product.id] = variation
 
-            if variation > 50:
+            # Couleur selon la variation
+            if variation > 100:
                 stock_colors[product.id] = 'table-success'
-            elif variation > 20:
-                stock_colors[product.id] = 'table-warning'
-            else:
+                variation_icons[product.id] = 'up'
+            elif variation < 100:
                 stock_colors[product.id] = 'table-danger'
+                variation_icons[product.id] = 'down'
+            else:
+                stock_colors[product.id] = 'table-warning'
+                variation_icons[product.id] = 'neutral'
 
         context['stock_colors'] = stock_colors
         context['stock_variations'] = stock_variations
-        return context
+        context['variation_icons'] = variation_icons
 
+        return context
 
 
 class ProductDetailView(AdminRequiredMixin, DetailView):
@@ -180,12 +187,13 @@ class MovementCreateView(AdminRequiredMixin, CreateView):
     model = Movement
     form_class = MovementForm
     template_name = 'stock/movement_form.html'
-    success_url = reverse_lazy('stock:product_list') 
+    success_url = reverse_lazy('stock:product_list')
 
     def form_valid(self, form):
         response = super().form_valid(form)
+        # Le mouvement vient d’être sauvegardé ici
         movement = self.object
-        apply_movement(movement.product, movement.movement_type, movement.movement_quantity)
+        # Pas besoin d'appeler apply_movement() ici, le signal post_save le fera automatiquement
         return response
 
 class MovementUpdateView(AdminRequiredMixin, UpdateView):

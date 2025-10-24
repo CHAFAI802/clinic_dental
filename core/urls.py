@@ -1,6 +1,6 @@
 from django.urls import path
 from . import views
-
+from .views import ActionLogListView
 app_name = "core"
 
 urlpatterns = [
@@ -9,6 +9,7 @@ urlpatterns = [
     path('parametres-cabinet/', views.clinic_info_update, name='clinic_info_update'),
     path("toggle-theme/", views.toggle_theme, name="toggle_theme"),
     path("clinic-preview/", views.clinic_preview, name="clinic_preview"),
+    path("actionlog/",ActionLogListView.as_view(),name='actionlog')
 ]
 
 

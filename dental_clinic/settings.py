@@ -2,6 +2,10 @@ import os
 from pathlib import Path 
 from decouple import config
 from datetime import timedelta
+from dotenv import load_dotenv
+load_dotenv()
+
+WKHTMLTOPDF_PATH = os.getenv("WKHTMLTOPDF_PATH")
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -11,10 +15,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = config('SECRET_KEY')
 DEBUG = config("DEBUG", default=False, cast=bool)
-ALLOWED_HOSTS = config("ALLOWED_HOSTS").split(",")
+ALLOWED_HOSTS = config("ALLOWED_HOSTS").split(",") 
+
 
 # Application definition
+
 INSTALLED_APPS = [
+    'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -33,11 +40,12 @@ INSTALLED_APPS = [
     'patients.apps.PatientsConfig',
     'prescriptions',
     'stock',
-
+    'django.forms',
     # Crispy Forms
     'crispy_forms',
     'crispy_bootstrap5',
     "widget_tweaks",
+    'documents',
 ]
 
 MIDDLEWARE = [
@@ -53,14 +61,19 @@ MIDDLEWARE = [
     'axes.middleware.AxesMiddleware',
 ]
 
-ROOT_URLCONF = 'dental_clinic.urls'
+ROOT_URLCONF = 'dental_clinic.urls' 
 
+
+from django.template.defaulttags import register
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
+            'builtins': [
+                'documents.templatetags.form_tags'
+            ],
             'context_processors': [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',

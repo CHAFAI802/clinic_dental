@@ -32,8 +32,26 @@
         <td>{{ patient.phone }}</td>
         <td>
           <a href="{% url 'patients:patient_update' patient.pk %}" class="btn btn-sm btn-warning">Modifier</a>
-          <a href="{% url 'patients:patient_delete' patient.pk %}" class="btn btn-sm btn-danger">Supprimer</a>
+          <form action="{% url 'patients:patient_delete' patient.pk %}" method="POST" style="display:inline;">
+            {% if user.is_admin %}
+              {% csrf_token %}
+                <button type="submit"
+                  class="btn btn-sm btn-danger"
+                  onclick="return confirm('⚠️ Confirmer la suppression de ce patient ?');">
+                  Supprimer
+                </button>
+            {% endif %}
+          </form>
+          {% if not patient.actif %}
+            <form method="post" action="{% url 'patients:patient_restore' patient.pk %}">
+              {% csrf_token %}
+              <button class="btn btn-success btn-sm">Restaurer</button>
+            </form>
+          {% endif %}
         </td>
+        
+            
+        
       </tr>
       {% empty %}
       <tr>

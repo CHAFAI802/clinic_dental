@@ -6,11 +6,8 @@ register = template.Library()
 def dict_get(dictionnaire, key):
     """
     Récupère la valeur de la clé `key` dans le dictionnaire `dictionnaire`.
-    Usage dans template : {{ mydict|dict_get:cle }}
+    Usage : {{ mydict|dict_get:cle }}
     """
-    if dictionnaire is None:
+    if not dictionnaire:
         return ''
-    try:
-        return dictionnaire.get(key, '')
-    except Exception:
-        return ''
+    return dictionnaire.get(key, '')

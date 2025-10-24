@@ -1,5 +1,5 @@
 from django import forms
-from .models import Billing
+from .models import Billing,ClinicHeader
 
 class BillingForm(forms.ModelForm):
     class Meta:
@@ -15,4 +15,12 @@ class BillingForm(forms.ModelForm):
             'amount': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'appointment': forms.Select(attrs={'class': 'form-select'}),
             'paid': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+
+class HeaderForm(forms.ModelForm):
+    class Meta:
+        model = ClinicHeader
+        fields = ['logo', 'header_text']
+        widgets = {
+            'header_text': forms.Textarea(attrs={'rows': 2, 'placeholder': 'Texte de l’en-tête...'}),
         }

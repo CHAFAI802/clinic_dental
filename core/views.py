@@ -10,6 +10,11 @@ from .forms import ClinicInfoForm
 from .models import ClinicInfo
 from django.contrib import messages
 from stock.models import Product, Movement
+from django.views.generic import ListView
+from .models import ActionLog
+from django.contrib.auth.mixins import LoginRequiredMixin
+
+
 
 
 @login_required
@@ -151,3 +156,12 @@ def toggle_theme(request):
     current = request.session.get("theme_mode", "light")
     request.session["theme_mode"] = "dark" if current == "light" else "light"
     return redirect(request.META.get("HTTP_REFERER", "/"))
+
+
+
+
+class ActionLogListView(LoginRequiredMixin, ListView):
+    model = ActionLog
+    template_name = "core/action_logs.html"
+    context_object_name = "logs"
+    ordering = ["-horodatage"]

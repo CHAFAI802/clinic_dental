@@ -95,15 +95,20 @@ class PatientUpdateView(LoginRequiredMixin, UpdateView):
         return kwargs
 
 
-class PatientDeleteView(LoginRequiredMixin, DeleteView):
-    model = Patient
-    template_name = "patients/patient_confirm_delete.html"
-    success_url = reverse_lazy("patients:patient_list")
 
-    def dispatch(self, request, *args, **kwargs):
+class PatientDeleteView(LoginRequiredMixin, View):
+    def post(self, request, pk):
+        print("methode recue",request.method)
+        patient = get_object_or_404(Patient, pk=pk)
         if not request.user.is_admin():
             raise PermissionDenied("Seul un administrateur peut supprimer un patient.")
-        return super().dispatch(request, *args, **kwargs)
+
+        # Vérification du statut de facturation via un signal ou méthode
+        if patient.has_unpaid_bills():
+            raise PermissionDenied("Ce patient a des factures non réglées. Suppression interdite.")
+
+        patient.supprimer_logiquement()
+        return redirect("patients:all_patients")
 
 
 @method_decorator(login_required, name='dispatch')
@@ -117,6 +122,20 @@ class AppointmentToggleDoneView(View):
         return redirect('appointments:appointment_list')  
 
 
+class PatientRestoreView(LoginRequiredMixin, View):
+    """Permet à un administrateur de restaurer un patient supprimé."""
+
+    def post(self, request, pk):
+        patient = get_object_or_404(Patient, pk=pk)
+
+        if not request.user.is_admin():
+            raise PermissionDenied("Seul un administrateur peut restaurer un patient.")
+
+        if patient.actif:
+            raise PermissionDenied("Ce patient est déjà actif.")
+
+        patient.restaurer(user=request.user)
+        return redirect(reverse_lazy("patients:all_patients"))
 
 
 
