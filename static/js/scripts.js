@@ -1,12 +1,28 @@
 document.addEventListener("DOMContentLoaded", function () {
-  // Initialisation de Quill
+  if (typeof window.ImageResize !== "undefined") {
+    Quill.register("modules/imageResize", window.ImageResize);
+  } else {
+    console.warn("⚠ Module imageResize introuvable");
+  }
+
+  if (typeof window.ImageUploader !== "undefined") {
+    Quill.register("modules/imageUploader", window.ImageUploader);
+  } else {
+    console.warn("⚠ Module imageUploader introuvable");
+  }
+
   const quill = new Quill("#editor", {
     theme: "snow",
-    placeholder: "Rédigez votre document ici...",
     modules: {
       toolbar: "#toolbar",
+      imageResize: { displaySize: true },
+      imageUploader: {
+        upload: file => Promise.resolve("path/to/image"),
+      },
     },
   });
+
+
 
   // Bouton personnalisé d’insertion d’image
   const customImageBtn = document.getElementById("customImageBtn");
@@ -44,25 +60,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // Gestion du glisser-déposer d’images
-  const editorContainer = document.querySelector("#editor .ql-editor");
-  if (editorContainer) {
-    editorContainer.addEventListener("drop", function (e) {
-      e.preventDefault();
-      if (e.dataTransfer && e.dataTransfer.files.length > 0) {
-        const file = e.dataTransfer.files[0];
-        if (file.type.startsWith("image/")) {
-          const reader = new FileReader();
-          reader.onload = function (evt) {
-            const range = quill.getSelection(true);
-            quill.insertEmbed(range.index, "image", evt.target.result);
-          };
-          reader.readAsDataURL(file);
-        }
-      }
-    });
-  }
-
+  
   // Sauvegarde du contenu HTML avant envoi
   const form = document.getElementById("templateForm");
   if (form) {

@@ -45,7 +45,7 @@ def upload_image(request):
     return JsonResponse({'error': 'Aucune image reçue'}, status=400)
 
 @login_required
-def delete_document(request, template_id):
+def delete_template(request, template_id):
     template = get_object_or_404(DocumentTemplate, id=template_id, created_by=request.user)
     template.delete()
     messages.success(request, "Le modèle a été supprimé avec succès.")

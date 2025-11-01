@@ -3,6 +3,7 @@
 
 
 
+
 {% block title %}Créer un modèle — {{ clinic_info.name }}{% endblock %}
 
 {% block content %}
@@ -128,23 +129,19 @@
   </div>
 </div>
 
+<link href="{% static 'css/quill.snow.css' %}" rel="stylesheet">
+<script src="{% static 'js/quill.min.js' %}"></script>
+<script src="{% static 'js/quill.imageResize.min.js' %}"></script>
+<script src="{% static 'js/quill.imageUploader.min.js' %}"></script>
+<script src="{% static 'js/scripts.js' %}"></script>
+
+
+
+
 {% endblock content %}
 
   
 
 
-
-{% block extra_scripts %}
-{{ block.super }}
-
-<link href="{% static 'css/quill.snow.css' %}" rel="stylesheet">
-<script src="{% static 'js/quill.min.js' %}"></script>
-<script src="{% static 'js/quill.imageUploader.min.js' %}"></script>
-
-<script src="{% static 'js/scripts.js' %}"></script>
-
-
-
-{% endblock %}
 
 

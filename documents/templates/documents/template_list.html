@@ -33,6 +33,9 @@
                   <a href="{% url 'documents:create_document' t.pk %}" class="btn btn-sm btn-outline-success">
                     <i class="bi bi-file-earmark-plus"></i> Créer un document
                   </a>
+                  <a href="{% url 'documents:delete_template' t.pk %}" class="btn btn-sm btn-outline-success">
+                    <i class="bi bi-file-earmark-plus"></i> Supprimer document
+                  </a>
                 </td>
               </tr>
               {% endfor %}
